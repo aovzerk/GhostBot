@@ -19,7 +19,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	client: BotCLient;
 	interaction: ChatInputCommandInteraction;
 	member: GuildMember;
-    nowPlayng: SongInfo | null = null;
+    nowPlaying: SongInfo | null = null;
 	player: Player | null = null;
 	msg: Message | null = null;
 	actionRow: ActionRowBuilder<ButtonBuilder>;
@@ -163,7 +163,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
             if (interaction.customId === "rep_m") {
                 if(this.mode === Modes.REPEAT) this.mode = Modes.NORMAL;
                 else this.mode = Modes.REPEAT;
-                await this.changeSongMessage(this.nowPlayng!);
+                await this.changeSongMessage(this.nowPlaying!);
 				await interaction.reply({
 					"ephemeral": true, "content": "Режим воспроизведения изменен"
 				});
@@ -178,10 +178,10 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				await this.destroy();
 				return;
 			}
-			let song = this.nowPlayng! // если мод повтор то берем прошлый трек который играл что его снова играть
+			let song = this.nowPlaying! // если мод повтор то берем прошлый трек который играл что его снова играть
             if(this.mode === Modes.NORMAL || this.lastEvent === "next_t") {
                 song = this.queue.shift()!;
-                this.nowPlayng = song;
+                this.nowPlaying = song;
                 this.lastEvent = null;
             }
 			await this.changeSongMessage(song);
@@ -230,7 +230,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			await this.sendErrorSearchSong(this.interaction);
 			return;
 		}
-        this.nowPlayng = song;
+        this.nowPlaying = song;
 		await this.createPlayer();
 		this.setHandlersPlayer();
 		await this.sendEmbedPlayer(song!, this.interaction);
