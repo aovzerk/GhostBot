@@ -55,7 +55,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	async getSong(search: string): Promise<SongInfo | null> {
 		try {
 			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
-			const node = this.client.slashCommandModule.manager.idealNodes[0];
+			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
 			const data = (await Rest.load(node, request)) as any;
 			const songInfo: SongInfo = {
 				"title": data.tracks[0].info.title,
@@ -130,7 +130,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		return this.msg!;
 	}
 	async createPlayer(): Promise<Player> {
-		this.player = await this.client.slashCommandModule.manager.join({
+		this.player = await this.client.slashCommandModule.managerLavalink.join({
 			"guild": this.interaction.guild!.id,
 			"channel": this.member.voice.channelId!,
 			"node": "1"
@@ -214,7 +214,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		this.player!.removeAllListeners("end");
 		await this.player!.stop();
 		await this.player!.destroy();
-		await this.client.slashCommandModule.manager.leave(this.member.guild.id);
+		await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
 		try {
 			await this.msg!.delete();
 		} catch (_) {}

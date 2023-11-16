@@ -11,18 +11,18 @@ export class SlashCommandModule extends BaseModule {
 	commands: Map<string, BaseCommand>;
 	commandParser: CommandParser;
 	nodes: LavalinkNodeOptions[];
-	manager: Manager;
+	managerLavalink: Manager;
 	constructor(client: BotCLient) {
 		super(client, "SlashCommandModule");
 		this.commands = new Map();
 		this.commandParser = new CommandParser(client);
 		this.nodes = ModuleConfig.config.lavaLinkNodes;
-		this.manager = new Manager(this.client, this.nodes, {
+		this.managerLavalink = new Manager(this.client, this.nodes, {
 			"user": config.botId
 		});
 	}
 	public async init(): Promise<boolean> {
-		await this.manager.connect();
+		await this.managerLavalink.connect();
 		await loadSlashCommands(this.client);
 		const callback = async (message: ChatInputCommandInteraction) => {
 			const commandParser = this.commandParser.getParser(message) as ParserInteractionCommand | null;
