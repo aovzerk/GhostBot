@@ -12,7 +12,7 @@ export default class Play implements BaseCommand {
 	constructor(client: BotCLient) {
 		this.client = client;
 	}
-	private succsess() {
+	private succsess(): CommandResponse {
 		return {
 			"state": CommandState.OK,
 			"message": `Команда ${this.description.name} ввыполнена успешно`
