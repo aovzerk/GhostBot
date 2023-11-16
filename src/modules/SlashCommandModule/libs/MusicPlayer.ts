@@ -218,7 +218,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		try {
 			await this.msg!.delete();
 		} catch (_) {}
-		this.destroyCallbacs();
+		this.destroyCallbacks();
 	}
 	async init() {
 		MusicPlayer.instances.set(this.interaction.guild!.id, this);

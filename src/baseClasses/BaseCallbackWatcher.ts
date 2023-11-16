@@ -27,7 +27,7 @@ export class BaseCallbackWatcher {
 		this.client.removeListener(eventName, func);
 		this.callbacks.set(eventName, callbacks!);
 	}
-	public destroyCallbacs() {
+	public destroyCallbacks() {
 		for (const handl of this.callbacks) {
 			for (const func of handl[1]) {
 				this.removeCallback(handl[0], func);

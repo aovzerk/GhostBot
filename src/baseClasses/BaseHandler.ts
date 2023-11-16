@@ -11,7 +11,7 @@ export class BaseHandler extends BaseCallbackWatcher {
 		this.callbacks = new Map();
 	}
 	public destroy() {
-		this.destroyCallbacs();
+		this.destroyCallbacks();
 	}
 	public async init(): Promise<boolean> {
 		return true;
