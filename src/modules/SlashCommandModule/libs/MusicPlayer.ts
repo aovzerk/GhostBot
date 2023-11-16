@@ -221,6 +221,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		this.destroyCallbacks();
 	}
 	async init() {
+		if(MusicPlayer.instances.has(this.interaction.guild!.id)) throw new Error("The player has already been created for this guild");
 		MusicPlayer.instances.set(this.interaction.guild!.id, this);
 		await this.interaction.deferReply();
 		this.setHandlersButtons();
