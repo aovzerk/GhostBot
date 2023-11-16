@@ -1,8 +1,8 @@
 import { BotCLient } from "./src/Client";
 
-const myAurora = new BotCLient("!");
+const myBot = new BotCLient("!");
 
 async function main() {
-	await myAurora.startBot();
+	await myBot.startBot();
 }
 main();
