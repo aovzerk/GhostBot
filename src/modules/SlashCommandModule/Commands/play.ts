@@ -12,6 +12,12 @@ export default class Play implements BaseCommand {
 	constructor(client: BotCLient) {
 		this.client = client;
 	}
+	private succsess() {
+		return {
+			"state": CommandState.OK,
+			"message": `Команда ${this.description.name} ввыполнена успешно`
+		};
+	}
 	public async run(params: CommandInteractionArgs): Promise<CommandResponse> {
 		try {
 			const member = await params.interaction.guild?.members.fetch(params.interaction.member!.user.id);
@@ -19,34 +25,22 @@ export default class Play implements BaseCommand {
 				await params.interaction.reply({
 					"content": "Упс, не предвиденная ошибка, юзер не найден"
 				});
-				return {
-					"state": CommandState.OK,
-					"message": `Команда ${this.description.name} ввыполнена успешно`
-				};
+				return this.succsess();
 			}
 			if (!member!.voice.channelId) {
 				await params.interaction.reply({
 					"content": "Вы не находитесь в голсоов канале"
 				});
-				return {
-					"state": CommandState.OK,
-					"message": `Команда ${this.description.name} ввыполнена успешно`
-				};
+				return this.succsess();
 			}
 			const oldPlayer = MusicPlayer.instances.get(member.guild.id);
 			if (oldPlayer) {
 				await oldPlayer.addSong(params.interaction);
-				return {
-					"state": CommandState.OK,
-					"message": `Команда ${this.description.name} ввыполнена успешно`
-				};
+				return this.succsess();
 			}
 			const player = new MusicPlayer(this.client, params.interaction, member);
 			await player.init();
-			return {
-				"state": CommandState.OK,
-				"message": `Команда ${this.description.name} ввыполнена успешно`
-			};
+			return this.succsess();
 		} catch (error) {
 			return {
 				"state": CommandState.ERROR,
