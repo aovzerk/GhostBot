@@ -8,11 +8,19 @@ type SongInfo = {
     "title": string,
     "url": string,
     "author": string,
-    "track": string
+    "track": string,
+	"thumb": string,
+	"request_by": string
 }
 enum Modes {
     "NORMAL" = 0,
     "REPEAT" = 1
+}
+enum PlayerButtonsEnum {
+    "STOP_PLAY" = "stop_q",
+    "NEXT_TRACK" = "next_t",
+	"CHANGE_MOD" = "rep_m",
+	"SHOW_QUEUE" = "queue_s"
 }
 export class MusicPlayer extends BaseCallbackWatcher {
 	static instances: Map<string, MusicPlayer> = new Map();
@@ -26,6 +34,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	actionRowModes: ActionRowBuilder<ButtonBuilder>;
     lastEvent: string | null = null;
 	isDestroy: boolean = false;
+	voiceChannelId: string | null = null;
     mode: Modes = Modes.NORMAL;
 	queue: SongInfo[] = [];
 	constructor(client: BotCLient, interaction: ChatInputCommandInteraction, member: GuildMember) {
@@ -42,6 +51,10 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				new ButtonBuilder()
 					.setCustomId("next_t")
 					.setLabel("Следующий трек")
+					.setStyle(ButtonStyle.Primary),
+				new ButtonBuilder()
+					.setCustomId("queue_s")
+					.setLabel("Очередь")
 					.setStyle(ButtonStyle.Primary)
 			);
 		this.actionRowModes = new ActionRowBuilder<ButtonBuilder>()
@@ -52,7 +65,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 					.setStyle(ButtonStyle.Primary)
 			);
 	}
-	async getSong(search: string): Promise<SongInfo | null> {
+	async getSong(search: string, requester: GuildMember): Promise<SongInfo | null> {
 		try {
 			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
 			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
@@ -61,7 +74,9 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				"title": data.tracks[0].info.title,
 				"url": data.tracks[0].info.uri,
 				"author": data.tracks[0].info.author,
-				"track": data.tracks[0].track
+				"track": data.tracks[0].track,
+				"thumb": `https://img.youtube.com/vi/${data.tracks[0].info.identifier}/0.jpg`,
+				"request_by": requester.id
 			};
 			return songInfo;
 		} catch (error) {
@@ -77,11 +92,26 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			return false;
 		}
 	}
-	async sendEmbedPlayer(songInfo: SongInfo, interaction: ChatInputCommandInteraction): Promise<Message> {
+	generateTrackEmbed(songInfo: SongInfo) {
 		const embed = new EmbedBuilder()
 			.setTitle(songInfo.title)
-			.setDescription(songInfo.author)
-			.setURL(songInfo.url);
+			.setDescription(`${songInfo.author}\n\n запросил: <@${songInfo.request_by}>`)
+			.setURL(songInfo.url)
+			.setThumbnail(songInfo.thumb);
+		return embed;
+	}
+	generateEmbedQueue() {
+		const embed = new EmbedBuilder()
+		.setTitle("Очередь");
+		let desc = "";
+		for(const song of this.queue) {
+			desc = `${desc}\n[${song.title}](${song.url}) - <@${song.request_by}>`;
+		}
+		embed.setDescription(desc === "" ? "Очередь пуста" : desc);
+		return embed;
+	}
+	async sendEmbedPlayer(songInfo: SongInfo, interaction: ChatInputCommandInteraction): Promise<Message> {
+		const embed = this.generateTrackEmbed(songInfo);
         let footerText = "Mode:"
         if (this.mode === Modes.NORMAL) footerText = `${footerText} обычный`
         if (this.mode === Modes.REPEAT) footerText = `${footerText} повтор`
@@ -94,10 +124,9 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		return this.msg;
 	}
 	async sendEmbedAddedSong(songInfo: SongInfo, interaction: ChatInputCommandInteraction): Promise<Message> {
-		const embed = new EmbedBuilder()
-			.setTitle(songInfo.author)
-			.setDescription(`Трек ${songInfo.title} добавлен в очередь`)
-			.setURL(songInfo.url);
+		const embed = this.generateTrackEmbed(songInfo);
+		embed.setTitle(songInfo.author);
+		embed.setDescription(`Трек ${songInfo.title} добавлен в очередь`);
 		const msg = await interaction.editReply({
 			"embeds": [embed]
 		});
@@ -110,14 +139,11 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	}
 	async sendErrorAddSong(interaction: ChatInputCommandInteraction) {
 		await interaction.editReply({
-			"content": "Вы не DJ"
+			"content": `Ошибка добавления трека в очередь, возможно вы не в том же голосов канале что и бот <#${this.voiceChannelId}>`
 		});
 	}
 	async changeSongMessage(songInfo: SongInfo): Promise<Message> {
-		const embed = new EmbedBuilder()
-			.setTitle(songInfo.title)
-			.setDescription(songInfo.author)
-			.setURL(songInfo.url);
+		const embed = this.generateTrackEmbed(songInfo);
         let footerText = "Mode:"
         if (this.mode === Modes.NORMAL) footerText = `${footerText} обычный`
         if (this.mode === Modes.REPEAT) footerText = `${footerText} повтор`
@@ -135,6 +161,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			"channel": this.member.voice.channelId!,
 			"node": "1"
 		});
+		this.voiceChannelId = this.member.voice.channelId;
 		return this.player;
 	}
 	setHandlersButtons() {
@@ -148,25 +175,39 @@ export class MusicPlayer extends BaseCallbackWatcher {
                 return;
             }
             this.lastEvent = interaction.customId;
-			if (interaction.customId === "stop_q") {
+			if (interaction.customId === PlayerButtonsEnum.STOP_PLAY) {
 				this.isDestroy = true;
 				await this.destroy();
 				return;
 			}
-			if (interaction.customId === "next_t") {
+			if (interaction.customId === PlayerButtonsEnum.NEXT_TRACK) {
+				if(this.queue.length === 0) this.mode = Modes.NORMAL;
 				await this.player!.stop();
-                if(this.queue.length === 0) this.mode = Modes.NORMAL;
 				await interaction.reply({
 					"ephemeral": true, "content": "Играю следующий трек"
 				});
+				return;
 			}
-            if (interaction.customId === "rep_m") {
+            if (interaction.customId === PlayerButtonsEnum.CHANGE_MOD) {
                 if(this.mode === Modes.REPEAT) this.mode = Modes.NORMAL;
                 else this.mode = Modes.REPEAT;
                 await this.changeSongMessage(this.nowPlaying!);
 				await interaction.reply({
 					"ephemeral": true, "content": "Режим воспроизведения изменен"
 				});
+				return;
+			}
+			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
+				const embed = this.generateEmbedQueue();
+				const msg = await interaction.reply({
+					"embeds": [embed]
+				});
+				setTimeout(async () => {
+					try {
+						await msg.delete();
+					} catch (_) { }
+				}, 7000);
+				return;
 			}
 		};
 		this.regCallback("interactionCreate", callback);
@@ -191,11 +232,12 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	async addSong(interaction: ChatInputCommandInteraction) {
 		await interaction.deferReply();
 		const member = await interaction.guild!.members.fetch(interaction.member!.user.id);
-		if (member!.id != this.member.id) {
-			return this.sendErrorAddSong(interaction);
+		if(member.voice.channelId !== this.voiceChannelId) {
+			await this.sendErrorAddSong(interaction);
+			return;
 		}
 		const option = interaction.options.getString("request")!;
-		const song = await this.getSong(option);
+		const song = await this.getSong(option, member);
 		if (!song) {
 			await this.sendErrorSearchSong(interaction);
 			return;
@@ -226,7 +268,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		await this.interaction.deferReply();
 		this.setHandlersButtons();
 		const option = this.interaction.options.getString("request")!;
-		const song = await this.getSong(option);
+		const song = await this.getSong(option, this.member);
 		if (!song) {
 			await this.sendErrorSearchSong(this.interaction);
 			return;
