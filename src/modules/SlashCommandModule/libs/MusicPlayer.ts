@@ -4,6 +4,7 @@ import { BotCLient } from "../../../Client";
 import { Player, Rest } from "lavacord/dist/discord.js";
 import { URL } from "url";
 import { BaseCallbackWatcher } from "../../../baseClasses/BaseCallbackWatcher";
+import { deleteMsgAfterTimeout } from "../../../utils/etc";
 type SongInfo = {
     "title": string,
     "url": string,
@@ -199,14 +200,10 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			}
 			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
 				const embed = this.generateEmbedQueue();
-				const msg = await interaction.reply({
+				const msg = await (await interaction.reply({
 					"embeds": [embed]
-				});
-				setTimeout(async () => {
-					try {
-						await msg.delete();
-					} catch (_) { }
-				}, 7000);
+				})).fetch();
+				deleteMsgAfterTimeout(msg, 7000);
 				return;
 			}
 		};
@@ -244,12 +241,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		}
 		this.queue.push(song);
 		const msg = await this.sendEmbedAddedSong(song, interaction);
-		setTimeout(async () => {
-			try {
-				await msg.delete();
-			} catch (_) {}
-
-		}, 7000);
+		deleteMsgAfterTimeout(msg, 7000);
 	}
 	async destroy() {
 		MusicPlayer.instances.delete(this.interaction.guild!.id);
