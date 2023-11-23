@@ -1,5 +1,6 @@
 import { BotCLient } from "../../../Client";
 import { BaseCommand, CommandArgs, CommandDescription, CommandResponse, CommandState } from "../../../baseClasses/BaseCommand";
+import { config } from "../../../../config/config";
 import fs from "fs";
 import path from "path";
 const descriptionCommand: CommandDescription = {
@@ -21,6 +22,9 @@ export default class ReloadSlashCmd implements BaseCommand {
 	}
 	public async run(params: CommandArgs): Promise<CommandResponse> {
 		try {
+			if (params.message.author.id !== config.admin) {
+				return this.succsess();
+			}
 			const cmdName = params.args[0];
 			const command = this.client.slashCommandModule.commands.get(cmdName);
 			if (command === null) {
