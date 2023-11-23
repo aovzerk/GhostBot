@@ -1,12 +1,14 @@
+/* eslint-disable no-await-in-loop */
 import { ChatInputCommandInteraction } from "discord.js";
 import { BaseCommand, CommandResponse } from "../../baseClasses/BaseCommand";
 import { CommandParser, ParserInteractionCommand } from "../../../libs/CommandParser";
 import { BotCLient } from "../../Client";
 import { BaseModule } from "../../baseClasses/BaseModule";
-import { loadSlashCommands } from "../../utils/Loaders";
 import { LavalinkNodeOptions, Manager } from "lavacord/dist/discord.js";
 import { config } from "../../../config/config";
 import * as ModuleConfig from "./config/config";
+import fs from "fs";
+import path from "path";
 export class SlashCommandModule extends BaseModule {
 	commands: Map<string, BaseCommand>;
 	commandParser: CommandParser;
@@ -21,9 +23,24 @@ export class SlashCommandModule extends BaseModule {
 			"user": config.botId
 		});
 	}
+	private async loadSlashCommands(client: BotCLient) {
+		const files = fs.readdirSync(`${path.resolve()}/src/modules/SlashCommandModule/Commands`).filter(el => (el.endsWith(".ts") || el.endsWith(".js")) && !el.endsWith(".d.ts"));
+		const promises: Promise<boolean>[] = [];
+		for (const fileName of files) {
+			try {
+				const commandFile = await import(`${path.resolve()}/src/modules/SlashCommandModule/Commands/${fileName}`);
+				const command = new commandFile.default(client) as BaseCommand;
+				client.slashCommandModule.commands.set(command.description.name, command);
+			} catch (error) {
+				console.log(`SlashCommand ${fileName} not loaded!`);
+				console.log(error);
+			}
+		}
+		await Promise.all(promises);
+	}
 	public async init(): Promise<boolean> {
 		await this.managerLavalink.connect();
-		await loadSlashCommands(this.client);
+		await this.loadSlashCommands(this.client);
 		const callback = async (message: ChatInputCommandInteraction) => {
 			const commandParser = this.commandParser.getParser(message) as ParserInteractionCommand | null;
 			if (commandParser == null) return;

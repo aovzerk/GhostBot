@@ -14,7 +14,7 @@ export default class Ping implements BaseCommand {
 	public async run(params: CommandInteractionArgs): Promise<CommandResponse> {
 		try {
 			await params.interaction.reply({
-				"content": "Pong!"
+				"content": `Pong! ( ${ Date.now() - params.interaction.createdTimestamp }ms )`
 			});
 			return {
 				"state": CommandState.OK,

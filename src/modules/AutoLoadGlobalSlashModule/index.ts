@@ -28,6 +28,19 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 						"description": "Url or text"
 					}
 				]
+			},
+			{
+				"name": "avatar",
+				"description": "Show user avatar",
+				"type": 1, // chat command
+				"options": [
+					{
+						"type": 6, // string
+						"name": "user",
+						"required": false,
+						"description": "Member"
+					}
+				]
 			}
 		];
 	}
