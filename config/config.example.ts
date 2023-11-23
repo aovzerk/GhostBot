@@ -18,7 +18,8 @@ const intetns = [
 	IntentsBitField.Flags.GuildMessageTyping,
 	IntentsBitField.Flags.DirectMessages,
 	IntentsBitField.Flags.DirectMessageReactions,
-	IntentsBitField.Flags.DirectMessageTyping
+	IntentsBitField.Flags.DirectMessageTyping,
+	IntentsBitField.Flags.MessageContent
 ];
 
 export const config = {
