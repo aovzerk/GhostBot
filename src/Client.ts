@@ -8,12 +8,14 @@ import { Logger } from "../libs/Logger";
 import path from "path";
 import { SlashCommandModule } from "./modules/SlashCommandModule";
 import { AutoLoadGlobalSlashModule } from "./modules/AutoLoadGlobalSlashModule";
+import { BotStatusModule } from "./modules/BotStatusModule";
 
 export class BotCLient extends Client {
 	auroraHandlers: BaseHandler[];
 	chatCommandModule: ChatCommandModule;
 	slashCommandModule: SlashCommandModule;
 	autoLoadGlobalSlash: AutoLoadGlobalSlashModule;
+	botStatusModule: BotStatusModule;
 	logger: Logger;
 	prefix: string;
 	constructor(prefix: string) {
@@ -23,18 +25,20 @@ export class BotCLient extends Client {
 		this.chatCommandModule = new ChatCommandModule(this);
 		this.slashCommandModule = new SlashCommandModule(this);
 		this.autoLoadGlobalSlash = new AutoLoadGlobalSlashModule(this);
+		this.botStatusModule = new BotStatusModule(this);
 		this.auroraHandlers = [];
 		this.logger = new Logger(`${path.resolve()}/logs`);
 		this.prefix = prefix;
 	}
 	public async initAurora() {
 		await Promise.all([
-			await this.logger.init(),
-			await connectMongo(),
-			await loadAllHandlers(this),
-			await this.chatCommandModule.load(),
-			await this.slashCommandModule.load(),
-			await this.autoLoadGlobalSlash.load()
+			this.logger.init(),
+			connectMongo(),
+			loadAllHandlers(this),
+			this.chatCommandModule.load(),
+			this.slashCommandModule.load(),
+			this.autoLoadGlobalSlash.load(),
+			this.botStatusModule.load()
 		]);
 	}
 	public async loginAurora() {
