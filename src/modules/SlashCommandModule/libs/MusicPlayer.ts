@@ -80,7 +80,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				"request_by": requester.id
 			};
 			return songInfo;
-		} catch (error) {
+		} catch (_) {
 			return null;
 		}
 
