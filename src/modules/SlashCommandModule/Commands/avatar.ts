@@ -20,7 +20,6 @@ export default class Ping implements BaseCommand {
 			const memberInOption = params.interaction.options.getMember("user") as GuildMember | null;
 			if (memberInOption) member = memberInOption;
 			const avatarUser = member.user.avatarURL({
-				"forceStatic": true,
 				"size": 4096
 			});
 			/* const avatarUserGuild = member.avatarURL({
