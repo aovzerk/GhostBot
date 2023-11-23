@@ -255,21 +255,29 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		this.destroyCallbacks();
 	}
 	async init() {
-		if(MusicPlayer.instances.has(this.interaction.guild!.id)) throw new Error(`The player has already been created for this guild ( ${this.interaction.guild!.id} )`);
-		MusicPlayer.instances.set(this.interaction.guild!.id, this);
-		await this.interaction.deferReply();
-		this.setHandlersButtons();
-		const option = this.interaction.options.getString("request")!;
-		const song = await this.getSong(option, this.member);
-		if (!song) {
-			await this.sendErrorSearchSong(this.interaction);
-			return;
+		try {
+			if(MusicPlayer.instances.has(this.interaction.guild!.id)) throw new Error(`The player has already been created for this guild ( ${this.interaction.guild!.id} )`);
+			MusicPlayer.instances.set(this.interaction.guild!.id, this);
+			await this.interaction.deferReply();
+			this.setHandlersButtons();
+			const option = this.interaction.options.getString("request")!;
+			const song = await this.getSong(option, this.member);
+			if (!song) {
+				await this.sendErrorSearchSong(this.interaction);
+				return;
+			}
+			this.nowPlaying = song;
+			await this.createPlayer();
+			this.setHandlersPlayer();
+			await this.sendEmbedPlayer(song!, this.interaction);
+			await this.player!.play(song.track);
+			return true;
+		} catch (error) {
+			console.log(error);
+			await this.interaction.editReply({
+				"content": "Упс, что-то сломалось("
+			})
 		}
-        this.nowPlaying = song;
-		await this.createPlayer();
-		this.setHandlersPlayer();
-		await this.sendEmbedPlayer(song!, this.interaction);
-		await this.player!.play(song.track);
-		return true;
+		
 	}
 }
