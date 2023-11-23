@@ -11,7 +11,7 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 	rest: REST;
 	constructor(client: BotCLient) {
 		super(client, "AutoLoadGlobalSlashModule");
-		this.rest = new REST().setToken(this.client.isDevBot ? config.dev_botId : config.botId);
+		this.rest = new REST().setToken(this.client.isDevBot ? config.dev_token : config.botId);
 		this.commands = [
 			{
 				"name": "ping",

@@ -44,7 +44,7 @@ export class BotCLient extends Client {
 		]);
 	}
 	public async loginAurora() {
-		const token = this.isDevBot ? config.dev_botId : config.token;
+		const token = this.isDevBot ? config.dev_token : config.token;
 		await this.login(token);
 	}
 	public async startBot() {
