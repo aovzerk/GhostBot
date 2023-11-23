@@ -274,6 +274,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			return true;
 		} catch (error) {
 			console.log(error);
+			MusicPlayer.instances.delete(this.interaction.guild!.id);
 			await this.interaction.editReply({
 				"content": "Упс, что-то сломалось("
 			})
