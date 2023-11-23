@@ -45,7 +45,7 @@ export class BotCLient extends Client {
 		await this.login(config.token);
 	}
 	public async startBot() {
-		await this.initAurora();
 		await this.loginAurora();
+		await this.initAurora();
 	}
 }
