@@ -11,6 +11,7 @@ import { AutoLoadGlobalSlashModule } from "./modules/AutoLoadGlobalSlashModule";
 import { BotStatusModule } from "./modules/BotStatusModule";
 
 export class BotCLient extends Client {
+	isDevBot: boolean;
 	auroraHandlers: BaseHandler[];
 	chatCommandModule: ChatCommandModule;
 	slashCommandModule: SlashCommandModule;
@@ -18,7 +19,7 @@ export class BotCLient extends Client {
 	botStatusModule: BotStatusModule;
 	logger: Logger;
 	prefix: string;
-	constructor(prefix: string) {
+	constructor(prefix: string, dev = false) {
 		super({
 			"intents": config.intents
 		});
@@ -29,6 +30,7 @@ export class BotCLient extends Client {
 		this.auroraHandlers = [];
 		this.logger = new Logger(`${path.resolve()}/logs`);
 		this.prefix = prefix;
+		this.isDevBot = dev;
 	}
 	public async initAurora() {
 		await Promise.all([
@@ -42,7 +44,8 @@ export class BotCLient extends Client {
 		]);
 	}
 	public async loginAurora() {
-		await this.login(config.token);
+		const token = this.isDevBot ? config.dev_botId : config.token;
+		await this.login(token);
 	}
 	public async startBot() {
 		await this.loginAurora();

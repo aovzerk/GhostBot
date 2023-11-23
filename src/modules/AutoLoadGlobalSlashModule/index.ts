@@ -3,13 +3,15 @@ import { REST, Routes } from "discord.js";
 import { BotCLient } from "../../Client";
 import { BaseModule } from "../../baseClasses/BaseModule";
 import { config } from "../../../config/config";
-const rest = new REST().setToken(config.token);
+
 
 export class AutoLoadGlobalSlashModule extends BaseModule {
 	commands: any[];
 	isLoad: boolean = false;
+	rest: REST;
 	constructor(client: BotCLient) {
 		super(client, "AutoLoadGlobalSlashModule");
+		this.rest = new REST().setToken(this.client.isDevBot ? config.dev_botId : config.botId);
 		this.commands = [
 			{
 				"name": "ping",
@@ -46,8 +48,9 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 	}
 	public async init(): Promise<boolean> {
 		if (this.isLoad) {
-			await rest.put(
-				Routes.applicationCommands(config.botId),
+			const botId = this.client.isDevBot ? config.dev_botId : config.botId;
+			await this.rest.put(
+				Routes.applicationCommands(botId),
 				{ "body": this.commands }
 			);
 		}

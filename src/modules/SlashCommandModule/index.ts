@@ -20,7 +20,7 @@ export class SlashCommandModule extends BaseModule {
 		this.commandParser = new CommandParser(client);
 		this.nodes = ModuleConfig.config.lavaLinkNodes;
 		this.managerLavalink = new Manager(this.client, this.nodes, {
-			"user": config.botId
+			"user": this.client.isDevBot ? config.dev_botId : config.botId
 		});
 	}
 	private async loadSlashCommands(client: BotCLient) {
