@@ -39,6 +39,9 @@ export class SlashCommandModule extends BaseModule {
 		await Promise.all(promises);
 	}
 	public async init(): Promise<boolean> {
+		this.managerLavalink.once("ready", () => {
+			console.log("lavalink connected");
+		});
 		await this.managerLavalink.connect();
 		await this.loadSlashCommands(this.client);
 		const callback = async (message: ChatInputCommandInteraction) => {
