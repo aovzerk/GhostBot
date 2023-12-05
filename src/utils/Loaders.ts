@@ -12,7 +12,7 @@ export async function loadAllHandlers(client: BotCLient) {
 			const handlersFile = await import(`${path.resolve()}/src/handlers/${fileName}`);
 			const handlers = new handlersFile.default(client) as BaseHandler;
 			promises.push(handlers.load());
-			client.auroraHandlers.push(handlers);
+			client.botHandlers.push(handlers);
 		} catch (error) {
 			console.log(`Handler ${fileName} not loaded!`);
 			console.log(error);

@@ -12,7 +12,7 @@ import { BotStatusModule } from "./modules/BotStatusModule";
 
 export class BotCLient extends Client {
 	isDevBot: boolean;
-	auroraHandlers: BaseHandler[];
+	botHandlers: BaseHandler[];
 	chatCommandModule: ChatCommandModule;
 	slashCommandModule: SlashCommandModule;
 	autoLoadGlobalSlash: AutoLoadGlobalSlashModule;
@@ -27,12 +27,12 @@ export class BotCLient extends Client {
 		this.slashCommandModule = new SlashCommandModule(this);
 		this.autoLoadGlobalSlash = new AutoLoadGlobalSlashModule(this);
 		this.botStatusModule = new BotStatusModule(this);
-		this.auroraHandlers = [];
+		this.botHandlers = [];
 		this.logger = new Logger(`${path.resolve()}/logs`);
 		this.prefix = prefix;
 		this.isDevBot = dev;
 	}
-	public async initAurora() {
+	public async initBot() {
 		await Promise.all([
 			this.logger.init(),
 			connectMongo(),
@@ -43,12 +43,12 @@ export class BotCLient extends Client {
 			this.botStatusModule.load()
 		]);
 	}
-	public async loginAurora() {
+	public async loginBot() {
 		const token = this.isDevBot ? config.dev_token : config.token;
 		await this.login(token);
 	}
 	public async startBot() {
-		await this.loginAurora();
-		await this.initAurora();
+		await this.loginBot();
+		await this.initBot();
 	}
 }
