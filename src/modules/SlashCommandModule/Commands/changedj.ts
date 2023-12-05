@@ -1,3 +1,4 @@
+import { GuildMember } from "discord.js";
 import { BotCLient } from "../../../Client";
 import { BaseCommand, CommandDescription, CommandInteractionArgs, CommandResponse, CommandState } from "../../../baseClasses/BaseCommand";
 import { MusicPlayer } from "../libs/MusicPlayer";
@@ -34,15 +35,16 @@ export default class Ping implements BaseCommand {
 				return this.succsess();
 			}
 			await params.interaction.deferReply();
-			const member = await params.interaction.guild?.members.fetch(params.interaction.member!.user.id);
-			if (!member) {
-				await params.interaction.reply({
+			const memberParams = params.interaction.options.getMember("user") as GuildMember;
+			if (!memberParams) {
+				await params.interaction.editReply({
 					"content": "Упс, не предвиденная ошибка, юзер не найден"
 				});
 				return this.succsess();
 			}
+			oldPlayer.member = memberParams;
 			await params.interaction.editReply({
-				"content": `<@${member.user.id}> Теперь DJ`
+				"content": `<@${memberParams.user.id}> Теперь DJ`
 			});
 			return this.succsess();
 		} catch (error) {
