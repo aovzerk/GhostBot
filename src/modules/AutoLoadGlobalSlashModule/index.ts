@@ -42,9 +42,22 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 				"type": 1, // chat command
 				"options": [
 					{
-						"type": 6, // string
+						"type": 6, // member
 						"name": "user",
 						"required": false,
+						"description": "Member"
+					}
+				]
+			},
+			{
+				"name": "changedj",
+				"description": "Change Dj",
+				"type": 1, // chat command
+				"options": [
+					{
+						"type": 6, // member
+						"name": "user",
+						"required": true,
 						"description": "Member"
 					}
 				]
