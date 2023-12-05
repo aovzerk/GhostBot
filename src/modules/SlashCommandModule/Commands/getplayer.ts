@@ -27,6 +27,7 @@ export default class Ping implements BaseCommand {
 				});
 				return this.succsess();
 			}
+			await params.interaction.deferReply();
 			await oldPlayer.sendEmbedPlayer(oldPlayer.nowPlaying!, params.interaction);
 			return this.succsess();
 		} catch (error) {
