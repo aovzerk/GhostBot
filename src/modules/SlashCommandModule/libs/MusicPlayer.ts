@@ -9,13 +9,15 @@ import { SongInfo } from "./types";
 import { ShowQueueMessageWatcher } from "./ShowQueueMessageWatcher";
 enum Modes {
     "NORMAL" = 0,
-    "REPEAT" = 1
+    "REPEAT" = 1,
+	"REPEAT_Q" = 3
 }
 enum PlayerButtonsEnum {
     "STOP_PLAY" = "stop_q",
     "NEXT_TRACK" = "next_t",
-	"CHANGE_MOD" = "rep_m",
-	"SHOW_QUEUE" = "queue_s"
+	"REPEAT_SONG" = "rep_s",
+	"SHOW_QUEUE" = "queue_s",
+	"REPEAT_QUEUE" = "rep_q"
 }
 export class MusicPlayer extends BaseCallbackWatcher {
 	static instances: Map<string, MusicPlayer> = new Map();
@@ -29,6 +31,8 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	actionRowModes: ActionRowBuilder<ButtonBuilder>;
     lastEvent: string | null = null;
 	isDestroy: boolean = false;
+	tmpQueue: SongInfo[] | null = null;
+	nowPlayingTmpQueueId: number | null = null;
 	voiceChannelId: string | null = null;
     mode: Modes = Modes.NORMAL;
 	queue: SongInfo[] = [];
@@ -55,8 +59,12 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		this.actionRowModes = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
 				new ButtonBuilder()
-					.setCustomId("rep_m")
+					.setCustomId("rep_s")
 					.setLabel("Зациклить трек")
+					.setStyle(ButtonStyle.Primary),
+				new ButtonBuilder()
+					.setCustomId("rep_q")
+					.setLabel("Зациклить очередь")
 					.setStyle(ButtonStyle.Primary)
 			);
 	}
@@ -171,6 +179,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
         let footerText = "Mode:"
         if (this.mode === Modes.NORMAL) footerText = `${footerText} обычный`
         if (this.mode === Modes.REPEAT) footerText = `${footerText} повтор`
+		if (this.mode === Modes.REPEAT_Q) footerText = `${footerText} повтор очереди`
         embed.setFooter({
             "text": footerText
         });
@@ -202,6 +211,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			if (!interaction.isButton()) return;
 			if(interaction.message.id !== this.msg.id) return;
 			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
+				const queue = [];
 				const queueWatcher = new ShowQueueMessageWatcher(this.client, this.queue);
 				await queueWatcher.init(interaction);
 				return;
@@ -226,9 +236,30 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				});
 				return;
 			}
-            if (interaction.customId === PlayerButtonsEnum.CHANGE_MOD) {
+            if (interaction.customId === PlayerButtonsEnum.REPEAT_SONG) {
                 if(this.mode === Modes.REPEAT) this.mode = Modes.NORMAL;
                 else this.mode = Modes.REPEAT;
+                await this.changeSongMessage(this.nowPlaying!);
+				await interaction.reply({
+					"ephemeral": true, "content": "Режим воспроизведения изменен"
+				});
+				return;
+			}
+			if (interaction.customId === PlayerButtonsEnum.REPEAT_QUEUE) {
+                if(this.mode === Modes.REPEAT_Q) {
+					this.mode = Modes.NORMAL;
+					this.tmpQueue = null;
+					this.nowPlayingTmpQueueId = null;
+				}
+                else {
+					this.mode = Modes.REPEAT_Q;
+					this.tmpQueue = [];
+					this.tmpQueue.push(this.nowPlaying!);
+					(JSON.parse(JSON.stringify(this.queue)) as SongInfo[]).forEach(el => {
+						this.tmpQueue!.push(el);
+					});
+					this.nowPlayingTmpQueueId = 1;
+				}
                 await this.changeSongMessage(this.nowPlaying!);
 				await interaction.reply({
 					"ephemeral": true, "content": "Режим воспроизведения изменен"
@@ -241,16 +272,27 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	setHandlersPlayer() {
 		this.player!.on("end", async () => {
 			if (this.isDestroy) return;
-			if (this.queue.length === 0 && this.mode !== Modes.REPEAT) {
+			console.log(this.mode);
+			if (this.queue.length === 0 && this.mode === Modes.NORMAL) {
 				await this.destroy();
 				return;
 			}
 			let song = this.nowPlaying! // если мод повтор то берем прошлый трек который играл что его снова играть
-            if(this.mode === Modes.NORMAL || this.lastEvent === "next_t") {
+            if((this.mode === Modes.NORMAL || this.lastEvent === "next_t") && this.mode !== Modes.REPEAT_Q) {
                 song = this.queue.shift()!;
                 this.nowPlaying = song;
                 this.lastEvent = null;
             }
+			if(this.mode === Modes.REPEAT_Q) {
+				if(this.tmpQueue !== null && this.nowPlayingTmpQueueId !== null) {
+					song = this.tmpQueue[this.nowPlayingTmpQueueId];
+					this.nowPlaying = song;
+					this.nowPlayingTmpQueueId += 1;
+					if(this.nowPlayingTmpQueueId > this.tmpQueue.length - 1) {
+						this.nowPlayingTmpQueueId = 0;
+					}
+				}
+			}
 			await this.changeSongMessage(song);
 			await this.player!.play(song.track);
 		});
@@ -273,6 +315,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				}
 				song = playListongs[0];
 				playListongs.forEach(el => this.queue.push(el));
+				if(this.mode === Modes.REPEAT_Q) playListongs.forEach(el => this.tmpQueue!.push(el));
 			} else {
 				song = await this.getSong(option, this.member);
 			}
@@ -285,10 +328,13 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			msg = await this.sendEmbedAddedPlayList(song, interaction);
 		} else {
 			msg = await this.sendEmbedAddedSong(song, interaction);
+			this.queue.push(song);
+			if(this.mode === Modes.REPEAT_Q) this.tmpQueue!.push(song);
 		}
+		
 		deleteMsgAfterTimeout(msg, 7000);
 	}
-	async destroy(leaveChannel = false) {
+	async destroy() {
 		MusicPlayer.instances.delete(this.interaction.guild!.id);
 		this.player!.removeAllListeners("end");
 		try {
@@ -297,11 +343,9 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		try {
 			await this.player!.destroy();
 		} catch (_) {}
-		if(leaveChannel) {
-			try {
-				await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
-			} catch (_) {}
-		}
+		try {
+			await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
+		} catch (_) {}
 		try {
 			await this.msg!.delete();
 		} catch (_) {}
