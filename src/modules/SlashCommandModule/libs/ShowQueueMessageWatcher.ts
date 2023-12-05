@@ -96,7 +96,7 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 		if (desc === "") {
 			this.actionRow.components.forEach(el => el.setDisabled(true));
 		}
-		if(page === 1) {
+		if(page === 0) {
 			this.actionRow.components[0].setDisabled(true);
 		}
 		if(page >= this.pages!) {
