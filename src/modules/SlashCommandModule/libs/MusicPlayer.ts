@@ -229,7 +229,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				return;
 			}
 			if (interaction.customId === PlayerButtonsEnum.NEXT_TRACK) {
-				if(this.queue.length === 0) this.mode = Modes.NORMAL;
+				if(this.queue.length === 0 && this.mode !== Modes.REPEAT_Q) this.mode = Modes.NORMAL;
 				await this.player!.stop();
 				await interaction.reply({
 					"ephemeral": true, "content": "Играю следующий трек"
@@ -285,12 +285,12 @@ export class MusicPlayer extends BaseCallbackWatcher {
             }
 			if(this.mode === Modes.REPEAT_Q) {
 				if(this.tmpQueue !== null && this.nowPlayingTmpQueueId !== null) {
-					song = this.tmpQueue[this.nowPlayingTmpQueueId];
-					this.nowPlaying = song;
-					this.nowPlayingTmpQueueId += 1;
 					if(this.nowPlayingTmpQueueId > this.tmpQueue.length - 1) {
 						this.nowPlayingTmpQueueId = 0;
 					}
+					song = this.tmpQueue[this.nowPlayingTmpQueueId];
+					this.nowPlaying = song;
+					this.nowPlayingTmpQueueId += 1;
 				}
 			}
 			await this.changeSongMessage(song);
