@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, GuildMember, Message } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, GuildMember, Message, VoiceState } from "discord.js";
 import { BotCLient } from "../../../Client";
 import { Player, Rest } from "lavacord/dist/discord.js";
 import { URL } from "url";
@@ -165,11 +165,20 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		this.voiceChannelId = this.member.voice.channelId;
 		return this.player;
 	}
+	setHandlerVoiceUpdate() {
+		const callback = async (oldState: VoiceState, newState: VoiceState) => {
+			if(newState.member!.id !== this.client.user!.id) return;
+			if(newState.channelId === null) {
+				await this.destroy();
+			}
+		}
+		this.regCallback("voiceStateUpdate", callback)
+	}
 	setHandlersButtons() {
 		const callback = async (interaction: ButtonInteraction) => {
 			if (!this.msg) return;
 			if (!interaction.isButton()) return;
-			if (interaction.message.id !== this.msg!.id) {
+			if (interaction.message.author.id !== this.msg!.author.id) {
                 await interaction.reply({
 					"ephemeral": true, "content": "Вы не DJ!"
 				});
@@ -248,7 +257,10 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		this.player!.removeAllListeners("end");
 		await this.player!.stop();
 		await this.player!.destroy();
-		await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
+		try {
+			await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
+		} catch (_) {}
+		
 		try {
 			await this.msg!.delete();
 		} catch (_) {}
@@ -275,6 +287,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		} catch (error) {
 			console.log(error);
 			MusicPlayer.instances.delete(this.interaction.guild!.id);
+			await this.destroy();
 			await this.interaction.editReply({
 				"content": "Упс, что-то сломалось("
 			})

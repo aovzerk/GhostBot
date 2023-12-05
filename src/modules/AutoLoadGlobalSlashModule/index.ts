@@ -7,7 +7,7 @@ import { config } from "../../../config/config";
 
 export class AutoLoadGlobalSlashModule extends BaseModule {
 	commands: any[];
-	isLoad: boolean = false;
+	isLoad: boolean = true;
 	rest: REST;
 	constructor(client: BotCLient) {
 		super(client, "AutoLoadGlobalSlashModule");
@@ -16,6 +16,11 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 			{
 				"name": "ping",
 				"description": "Ping bot!",
+				"type": 1
+			},
+			{
+				"name": "getplayer",
+				"description": "Get music player",
 				"type": 1
 			},
 			{

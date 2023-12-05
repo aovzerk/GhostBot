@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "discord.js": "^14.13.0",
-    "lavacord": "^2.1.0-v4",
+    "lavacord": "^2.1.1-v4",
     "moment": "^2.29.4",
     "mongodb": "^6.1.0",
     "moonlink.js": "^2.11.38"
