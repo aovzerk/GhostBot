@@ -147,6 +147,15 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		});
 		return msg;
 	}
+	async sendEmbedAddedPlayList(songInfo: SongInfo, interaction: ChatInputCommandInteraction): Promise<Message> {
+		const embed = this.generateTrackEmbed(songInfo);
+		embed.setTitle(songInfo.author);
+		embed.setDescription(`Плейлист добавлен в очередь`);
+		const msg = await interaction.editReply({
+			"embeds": [embed]
+		});
+		return msg;
+	}
 	async sendErrorSearchSong(interaction: ChatInputCommandInteraction) {
 		await interaction.editReply({
 			"content": "Произошла ошибка в поиске трека"
@@ -191,6 +200,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		const callback = async (interaction: ButtonInteraction) => {
 			if (!this.msg) return;
 			if (!interaction.isButton()) return;
+			if(interaction.message.id !== this.msg.id) return;
 			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
 				const queueWatcher = new ShowQueueMessageWatcher(this.client, this.queue);
 				await queueWatcher.init(interaction);
@@ -270,7 +280,12 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			await this.sendErrorSearchSong(interaction);
 			return;
 		}
-		const msg = await this.sendEmbedAddedSong(song, interaction);
+		let msg: Message | null = null;
+		if(isPlayList) {
+			msg = await this.sendEmbedAddedPlayList(song, interaction);
+		} else {
+			msg = await this.sendEmbedAddedSong(song, interaction);
+		}
 		deleteMsgAfterTimeout(msg, 7000);
 	}
 	async destroy(leaveChannel = false) {
@@ -309,7 +324,9 @@ export class MusicPlayer extends BaseCallbackWatcher {
 					return;
 				}
 				song = playListongs[0];
-				playListongs.forEach(el => this.queue.push(el));
+				for(let i = 1; i < playListongs.length; i++) {
+					this.queue.push(playListongs[i])
+				}
 			} else {
 				song = await this.getSong(option, this.member);
 			}

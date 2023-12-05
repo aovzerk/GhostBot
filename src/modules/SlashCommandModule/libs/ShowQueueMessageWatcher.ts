@@ -4,22 +4,22 @@ import { BaseCallbackWatcher } from "../../../baseClasses/BaseCallbackWatcher";
 import { SongInfo } from "./types";
 import { deleteMsgAfterTimeout } from "../../../utils/etc";
 enum QeueButtonsEnum {
-    "NEXT_P" = "stop_q",
-    "PREV_P" = "next_t"
+    "NEXT_P" = "nextp",
+    "PREV_P" = "prevp"
 }
 export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 	limitPerPage: number = 15;
-	autoDeleteTimer: number = 20000;
+	autoDeleteTimer: number = 5 * 60 * 1000;
 	pages: number;
 	songs: SongInfo[];
-	currentPage: number = 1;
+	currentPage: number = 0;
 	msg: Message | null = null;
 	member: GuildMember | null = null;
 	actionRow: ActionRowBuilder<ButtonBuilder>;
 	constructor(client: BotCLient, songs: SongInfo[]) {
 		super(client);
 		this.songs = songs;
-		this.pages = Math.round(this.songs.length / this.limitPerPage);
+		this.pages = Math.ceil(this.songs.length / this.limitPerPage);
 		this.actionRow = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
 				new ButtonBuilder()
@@ -44,6 +44,7 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 		const callback = async (interaction: ButtonInteraction) => {
 			if (!this.msg) return;
 			if (!interaction.isButton()) return;
+			if(interaction.message.id !== this.msg.id) return;
 			if (interaction.member!.user.id !== this.member!.id) {
                 await interaction.reply({
 					"ephemeral": true, "content": "Вы не автор сообщения!"
@@ -51,12 +52,10 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
                 return;
             }
 			if (interaction.customId === QeueButtonsEnum.NEXT_P) {
-				this.currentPage++;
-				return;
+				this.currentPage += 1;
 			}
 			if (interaction.customId === QeueButtonsEnum.PREV_P) {
-				this.currentPage--;
-				return;
+				this.currentPage -= 1;
 			}
 			const embed = this.generateEmbed(this.currentPage);
 			if(!embed) {
@@ -66,27 +65,32 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 				this.destroy();
 				return;
 			}
-			await interaction.editReply({
-				"embeds": [embed], "components": [this.actionRow]
+			const msg = await interaction.deferUpdate({
+				"fetchReply": true
 			})
+			try {
+				await msg.edit({
+					"embeds": [embed], "components": [this.actionRow]
+				})
+			} catch (_) {}
+			
 			return;
 		};
 		this.regCallback("interactionCreate", callback);
 	}
 	generateEmbed(page: number) {
-		if(!this.songs) return null;
 		const embed = new EmbedBuilder()
 			.setTitle("Очередь");
 		let desc = "";
-		for (let i = page * this.limitPerPage; i < this.limitPerPage; i++) {
+		for (let i = page * this.limitPerPage; i < page * this.limitPerPage + this.limitPerPage; i++) {
 			if (!this.songs[i]) {
 				break;
 			}
-			desc = `${desc}\n[${this.songs[i].title}](${this.songs[i].url}) - <@${this.songs[i].request_by}>`;
+			desc = `${desc}\n[${i + 1}] [${this.songs[i].title}](${this.songs[i].url}) - <@${this.songs[i].request_by}>`;
 		}
 		embed.setDescription(desc === "" ? "Очередь пуста" : desc);
 		embed.setFooter({
-			"text": `[${page}/${this.pages}]`
+			"text": `[${page + 1}/${this.pages}]`
 		})
 		this.actionRow.components.forEach(el => el.setDisabled(false));
 		if (desc === "") {
@@ -104,29 +108,34 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 		this.destroyCallbacks();
 	}
 	async init(interaction: ButtonInteraction) {
-		await interaction.deferReply();
-		const member = await interaction.guild!.members.fetch(interaction.member!.user.id);
-		if (!member) {
-			await interaction.editReply({
-				"content": "Упс, не предвиденная ошибка, юзер не найден"
+		try {
+			await interaction.deferReply();
+			const member = await interaction.guild!.members.fetch(interaction.member!.user.id);
+			if (!member) {
+				await interaction.editReply({
+					"content": "Упс, не предвиденная ошибка, юзер не найден"
+				});
+				this.destroy();
+				return;
+			}
+			this.member = member;
+			const embed = this.generateEmbed(this.currentPage);
+			this.setHandlerMessage();
+			if(!embed) {
+				const msg = await interaction.editReply({
+					"content": "Упс, что-то слмоалось("
+				});
+				deleteMsgAfterTimeout(msg, 5000);
+				this.destroy();
+				return;
+			}
+			this.msg = await interaction.editReply({
+				"embeds": [embed], "components": [this.actionRow]
 			});
-			this.destroy();
-			return;
+		} catch (error) {
+			console.log(error)
 		}
-		this.member = member;
-		const embed = this.generateEmbed(this.currentPage);
-		this.setHandlerMessage();
-		if(!embed) {
-			const msg = await interaction.editReply({
-				"content": "Упс, что-то слмоалось("
-			});
-			deleteMsgAfterTimeout(msg, 5000);
-			this.destroy();
-			return;
-		}
-		this.msg = await interaction.editReply({
-			"embeds": [embed], "components": [this.actionRow]
-		});
+		
 		this.autoDelete(this.autoDeleteTimer);
 	}
 }
