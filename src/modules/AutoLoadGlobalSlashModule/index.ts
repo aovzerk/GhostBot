@@ -7,7 +7,7 @@ import { config } from "../../../config/config";
 
 export class AutoLoadGlobalSlashModule extends BaseModule {
 	commands: any[];
-	isLoad: boolean = true;
+	isLoad: boolean = false;
 	rest: REST;
 	constructor(client: BotCLient) {
 		super(client, "AutoLoadGlobalSlashModule");
@@ -26,6 +26,19 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 			{
 				"name": "play",
 				"description": "Play music",
+				"type": 1, // chat command
+				"options": [
+					{
+						"type": 3, // string
+						"name": "request",
+						"required": true,
+						"description": "Url or text"
+					}
+				]
+			},
+			{
+				"name": "playlist",
+				"description": "Play youtube playlist music",
 				"type": 1, // chat command
 				"options": [
 					{

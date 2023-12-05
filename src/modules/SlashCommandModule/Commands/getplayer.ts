@@ -6,7 +6,7 @@ const descriptionCommand: CommandDescription = {
 	"load": true
 };
 
-export default class Ping implements BaseCommand {
+export default class GetplayerPing implements BaseCommand {
 	description: CommandDescription = descriptionCommand;
 	client: BotCLient;
 	constructor(client: BotCLient) {

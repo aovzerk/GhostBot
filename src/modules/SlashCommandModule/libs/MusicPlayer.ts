@@ -5,14 +5,8 @@ import { Player, Rest } from "lavacord/dist/discord.js";
 import { URL } from "url";
 import { BaseCallbackWatcher } from "../../../baseClasses/BaseCallbackWatcher";
 import { deleteMsgAfterTimeout } from "../../../utils/etc";
-type SongInfo = {
-    "title": string,
-    "url": string,
-    "author": string,
-    "track": string,
-	"thumb": string,
-	"request_by": string
-}
+import { SongInfo } from "./types";
+import { ShowQueueMessageWatcher } from "./ShowQueueMessageWatcher";
 enum Modes {
     "NORMAL" = 0,
     "REPEAT" = 1
@@ -83,7 +77,27 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		} catch (_) {
 			return null;
 		}
-
+	}
+	async getPlaylistSongs(search: string, requester: GuildMember): Promise<SongInfo[] | null> {
+		try {
+			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
+			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
+			const data = (await Rest.load(node, request)) as any;
+			const songs: SongInfo[] = [];
+			for(const song of data.tracks) {
+				songs.push({
+					"title": song.info.title,
+					"url": song.info.uri,
+					"author": song.info.author,
+					"track": song.track,
+					"thumb": `https://img.youtube.com/vi/${song.info.identifier}/0.jpg`,
+					"request_by": requester.id
+				});
+			}
+			return songs;
+		} catch (_) {
+			return null;
+		}
 	}
 	isUrl(str: string): boolean {
 		try {
@@ -167,8 +181,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	}
 	setHandlerVoiceUpdate() {
 		const callback = async (oldState: VoiceState, newState: VoiceState) => {
-			if(newState.member!.id !== this.client.user!.id) return;
-			if(newState.channelId === null) {
+			if(newState.member!.id === this.client.user!.id && newState.channelId === null) {
 				await this.destroy();
 			}
 		}
@@ -179,11 +192,8 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			if (!this.msg) return;
 			if (!interaction.isButton()) return;
 			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
-				const embed = this.generateEmbedQueue();
-				const msg = await (await interaction.reply({
-					"embeds": [embed]
-				})).fetch();
-				deleteMsgAfterTimeout(msg, 7000);
+				const queueWatcher = new ShowQueueMessageWatcher(this.client, this.queue);
+				await queueWatcher.init(interaction);
 				return;
 			}
 			if (interaction.member!.user.id !== this.member.id) {
@@ -235,7 +245,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			await this.player!.play(song.track);
 		});
 	}
-	async addSong(interaction: ChatInputCommandInteraction) {
+	async addSong(interaction: ChatInputCommandInteraction, isPlayList = false) {
 		await interaction.deferReply();
 		const member = await interaction.guild!.members.fetch(interaction.member!.user.id);
 		if(member.voice.channelId !== this.voiceChannelId) {
@@ -243,16 +253,27 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			return;
 		}
 		const option = interaction.options.getString("request")!;
-		const song = await this.getSong(option, member);
+		let playListongs: SongInfo[] | null = null;
+			let song: SongInfo | null = null;
+			if(isPlayList) {
+				playListongs = await this.getPlaylistSongs(option, this.member);
+				if(!playListongs) {
+					await this.sendErrorSearchSong(interaction);
+					return;
+				}
+				song = playListongs[0];
+				playListongs.forEach(el => this.queue.push(el));
+			} else {
+				song = await this.getSong(option, this.member);
+			}
 		if (!song) {
 			await this.sendErrorSearchSong(interaction);
 			return;
 		}
-		this.queue.push(song);
 		const msg = await this.sendEmbedAddedSong(song, interaction);
 		deleteMsgAfterTimeout(msg, 7000);
 	}
-	async destroy() {
+	async destroy(leaveChannel = false) {
 		MusicPlayer.instances.delete(this.interaction.guild!.id);
 		this.player!.removeAllListeners("end");
 		try {
@@ -261,22 +282,37 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		try {
 			await this.player!.destroy();
 		} catch (_) {}
-		try {
-			await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
-		} catch (_) {}
+		if(leaveChannel) {
+			try {
+				await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
+			} catch (_) {}
+		}
 		try {
 			await this.msg!.delete();
 		} catch (_) {}
 		this.destroyCallbacks();
 	}
-	async init() {
+	async init(isPlayList = false) {
 		try {
 			if(MusicPlayer.instances.has(this.interaction.guild!.id)) throw new Error(`The player has already been created for this guild ( ${this.interaction.guild!.id} )`);
 			MusicPlayer.instances.set(this.interaction.guild!.id, this);
 			await this.interaction.deferReply();
 			this.setHandlersButtons();
 			const option = this.interaction.options.getString("request")!;
-			const song = await this.getSong(option, this.member);
+			let playListongs: SongInfo[] | null = null;
+			let song: SongInfo | null = null;
+			if(isPlayList) {
+				playListongs = await this.getPlaylistSongs(option, this.member);
+				if(!playListongs) {
+					await this.sendErrorSearchSong(this.interaction);
+					await this.destroy();
+					return;
+				}
+				song = playListongs[0];
+				playListongs.forEach(el => this.queue.push(el));
+			} else {
+				song = await this.getSong(option, this.member);
+			}
 			if (!song) {
 				await this.sendErrorSearchSong(this.interaction);
 				await this.destroy();

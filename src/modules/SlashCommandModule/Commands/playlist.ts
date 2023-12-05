@@ -1,13 +1,12 @@
-import { GuildMember } from "discord.js";
 import { BotCLient } from "../../../Client";
 import { BaseCommand, CommandDescription, CommandInteractionArgs, CommandResponse, CommandState } from "../../../baseClasses/BaseCommand";
 import { MusicPlayer } from "../libs/MusicPlayer";
 const descriptionCommand: CommandDescription = {
-	"name": "changedj",
+	"name": "playlist",
 	"load": true
 };
 
-export default class Сhangedj implements BaseCommand {
+export default class Playlist implements BaseCommand {
 	description: CommandDescription = descriptionCommand;
 	client: BotCLient;
 	constructor(client: BotCLient) {
@@ -21,31 +20,26 @@ export default class Сhangedj implements BaseCommand {
 	}
 	public async run(params: CommandInteractionArgs): Promise<CommandResponse> {
 		try {
-			const oldPlayer = MusicPlayer.instances.get(params.interaction.guild!.id);
-			if (!oldPlayer) {
+			const member = await params.interaction.guild?.members.fetch(params.interaction.member!.user.id);
+			if (!member) {
 				await params.interaction.reply({
-					"ephemeral": true, "content": "На сервере не воспроизводится музыка"
-				});
-				return this.succsess();
-			}
-			if (oldPlayer.member.user.id !== params.interaction.member!.user.id) {
-				await params.interaction.reply({
-					"ephemeral": true, "content": "Вы не DJ"
-				});
-				return this.succsess();
-			}
-			await params.interaction.deferReply();
-			const memberParams = params.interaction.options.getMember("user") as GuildMember;
-			if (!memberParams) {
-				await params.interaction.editReply({
 					"content": "Упс, не предвиденная ошибка, юзер не найден"
 				});
 				return this.succsess();
 			}
-			oldPlayer.member = memberParams;
-			await params.interaction.editReply({
-				"content": `<@${memberParams.user.id}> Теперь DJ`
-			});
+			if (!member!.voice.channelId) {
+				await params.interaction.reply({
+					"content": "Вы не находитесь в голсоов канале"
+				});
+				return this.succsess();
+			}
+			const oldPlayer = MusicPlayer.instances.get(member.guild.id);
+			if (oldPlayer) {
+				await oldPlayer.addSong(params.interaction, true);
+				return this.succsess();
+			}
+			const player = new MusicPlayer(this.client, params.interaction, member);
+			await player.init(true);
 			return this.succsess();
 		} catch (error) {
 			return {
