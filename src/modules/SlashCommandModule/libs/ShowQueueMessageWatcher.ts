@@ -3,6 +3,7 @@ import { BotCLient } from "../../../Client";
 import { BaseCallbackWatcher } from "../../../baseClasses/BaseCallbackWatcher";
 import { SongInfo } from "./types";
 import { deleteMsgAfterTimeout } from "../../../utils/etc";
+import { uuid } from 'uuidv4';
 enum QeueButtonsEnum {
     "NEXT_P" = "nextp",
     "PREV_P" = "prevp"
@@ -13,11 +14,13 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 	pages: number;
 	songs: SongInfo[];
 	currentPage: number = 0;
+	uuid: string;
 	msg: Message | null = null;
 	member: GuildMember | null = null;
 	actionRow: ActionRowBuilder<ButtonBuilder>;
 	constructor(client: BotCLient, songs: SongInfo[]) {
 		super(client);
+		this.uuid = uuid();
 		this.songs = songs;
 		this.pages = Math.ceil(this.songs.length / this.limitPerPage);
 		this.actionRow = new ActionRowBuilder<ButtonBuilder>()
@@ -35,9 +38,6 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 	autoDelete(ms: number) {
 		setTimeout(async () => {
 			this.destroy();
-			try {
-				await this.msg!.delete();
-			} catch (_) {}
 		}, ms);
 	}
 	setHandlerMessage() {
@@ -112,7 +112,11 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 		return embed;
 	}
 	async destroy() {
+		try {
+			await this.msg!.delete();
+		} catch (_) {}
 		this.destroyCallbacks();
+		this.client.emit("ShowQueueMessageWatcherDestroy", this.uuid)
 	}
 	async init(interaction: ButtonInteraction) {
 		try {

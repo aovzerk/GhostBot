@@ -22,6 +22,7 @@ enum PlayerButtonsEnum {
 export class MusicPlayer extends BaseCallbackWatcher {
 	static instances: Map<string, MusicPlayer> = new Map();
 	client: BotCLient;
+	queueWatchers: ShowQueueMessageWatcher[] = [];
 	interaction: ChatInputCommandInteraction;
 	member: GuildMember;
     nowPlaying: SongInfo | null = null;
@@ -205,14 +206,20 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		}
 		this.regCallback("voiceStateUpdate", callback)
 	}
+	setHandlersQueueWatcher() {
+		const callback = async (uuid: string) => {
+			this.queueWatchers = this.queueWatchers.filter(el => el.uuid !== uuid);
+		};
+		this.regCallback("ShowQueueMessageWatcherDestroy", callback);
+	}
 	setHandlersButtons() {
 		const callback = async (interaction: ButtonInteraction) => {
 			if (!this.msg) return;
 			if (!interaction.isButton()) return;
 			if(interaction.message.id !== this.msg.id) return;
 			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
-				const queue = [];
 				const queueWatcher = new ShowQueueMessageWatcher(this.client, this.queue);
+				this.queueWatchers.push(queueWatcher);
 				await queueWatcher.init(interaction);
 				return;
 			}
@@ -349,6 +356,9 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		try {
 			await this.msg!.delete();
 		} catch (_) {}
+		for(const queueWatcher of this.queueWatchers) {
+			await queueWatcher.destroy();
+		}
 		this.destroyCallbacks();
 	}
 	async init(isPlayList = false) {
