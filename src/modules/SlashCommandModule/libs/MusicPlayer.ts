@@ -178,7 +178,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		const callback = async (interaction: ButtonInteraction) => {
 			if (!this.msg) return;
 			if (!interaction.isButton()) return;
-			if (interaction.message.author.id !== this.msg!.author.id) {
+			if (interaction.member!.user.id !== this.member.id) {
                 await interaction.reply({
 					"ephemeral": true, "content": "Вы не DJ!"
 				});
