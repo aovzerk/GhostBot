@@ -59,7 +59,7 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 			}
 			if (interaction.customId === QeueButtonsEnum.PREV_P) {
 				this.currentPage -= 1;
-				if(this.currentPage < this.pages) {
+				if(this.currentPage < 0) {
 					this.currentPage = 0;
 				}
 			}
@@ -85,6 +85,7 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 		this.regCallback("interactionCreate", callback);
 	}
 	generateEmbed(page: number) {
+
 		const embed = new EmbedBuilder()
 			.setTitle("Очередь");
 		let desc = "";
@@ -105,7 +106,7 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 		if(page === 0) {
 			this.actionRow.components[0].setDisabled(true);
 		}
-		if(page >= this.pages!) {
+		if(page + 1 >= this.pages!) {
 			this.actionRow.components[1].setDisabled(true);
 		}
 		return embed;
