@@ -3,7 +3,7 @@ import { BotCLient } from "../../../Client";
 import { BaseCallbackWatcher } from "../../../baseClasses/BaseCallbackWatcher";
 import { SongInfo } from "./types";
 import { deleteMsgAfterTimeout } from "../../../utils/etc";
-import { uuid } from 'uuidv4';
+const { v4: uuidv4 } = require('uuid')
 enum QeueButtonsEnum {
     "NEXT_P" = "nextp",
     "PREV_P" = "prevp"
@@ -20,7 +20,7 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
 	actionRow: ActionRowBuilder<ButtonBuilder>;
 	constructor(client: BotCLient, songs: SongInfo[]) {
 		super(client);
-		this.uuid = uuid();
+		this.uuid = uuidv4();
 		this.songs = songs;
 		this.pages = Math.ceil(this.songs.length / this.limitPerPage);
 		this.actionRow = new ActionRowBuilder<ButtonBuilder>()
