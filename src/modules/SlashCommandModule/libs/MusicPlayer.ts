@@ -255,12 +255,15 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	async destroy() {
 		MusicPlayer.instances.delete(this.interaction.guild!.id);
 		this.player!.removeAllListeners("end");
-		await this.player!.stop();
-		await this.player!.destroy();
+		try {
+			await this.player!.stop();
+		} catch (_) {}
+		try {
+			await this.player!.destroy();
+		} catch (_) {}
 		try {
 			await this.client.slashCommandModule.managerLavalink.leave(this.member.guild.id);
 		} catch (_) {}
-		
 		try {
 			await this.msg!.delete();
 		} catch (_) {}
@@ -276,6 +279,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			const song = await this.getSong(option, this.member);
 			if (!song) {
 				await this.sendErrorSearchSong(this.interaction);
+				await this.destroy();
 				return;
 			}
 			this.nowPlaying = song;
