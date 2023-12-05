@@ -178,6 +178,14 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		const callback = async (interaction: ButtonInteraction) => {
 			if (!this.msg) return;
 			if (!interaction.isButton()) return;
+			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
+				const embed = this.generateEmbedQueue();
+				const msg = await (await interaction.reply({
+					"embeds": [embed]
+				})).fetch();
+				deleteMsgAfterTimeout(msg, 7000);
+				return;
+			}
 			if (interaction.member!.user.id !== this.member.id) {
                 await interaction.reply({
 					"ephemeral": true, "content": "Вы не DJ!"
@@ -205,14 +213,6 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				await interaction.reply({
 					"ephemeral": true, "content": "Режим воспроизведения изменен"
 				});
-				return;
-			}
-			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
-				const embed = this.generateEmbedQueue();
-				const msg = await (await interaction.reply({
-					"embeds": [embed]
-				})).fetch();
-				deleteMsgAfterTimeout(msg, 7000);
 				return;
 			}
 		};
