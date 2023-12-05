@@ -53,9 +53,15 @@ export class ShowQueueMessageWatcher extends BaseCallbackWatcher {
             }
 			if (interaction.customId === QeueButtonsEnum.NEXT_P) {
 				this.currentPage += 1;
+				if(this.currentPage > this.pages) {
+					this.currentPage = this.pages;
+				}
 			}
 			if (interaction.customId === QeueButtonsEnum.PREV_P) {
 				this.currentPage -= 1;
+				if(this.currentPage < this.pages) {
+					this.currentPage = 0;
+				}
 			}
 			const embed = this.generateEmbed(this.currentPage);
 			if(!embed) {
