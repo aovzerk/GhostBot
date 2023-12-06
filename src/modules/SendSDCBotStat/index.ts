@@ -6,7 +6,7 @@ import fetch from "node-fetch";
 
 
 export class SendSDCBotStat extends BaseModule {
-	isLoad: boolean = false;
+	isLoad: boolean = true;
 	botId: string;
 	interval: NodeJS.Timeout | undefined;
 	constructor(client: BotCLient) {
