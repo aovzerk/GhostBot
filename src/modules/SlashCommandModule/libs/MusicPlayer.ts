@@ -18,7 +18,8 @@ enum PlayerButtonsEnum {
 	"REPEAT_SONG" = "rep_s",
 	"SHOW_QUEUE" = "queue_s",
 	"REPEAT_QUEUE" = "rep_q",
-	"SHUFFLE_QUEUE" = "shuf"
+	"SHUFFLE_QUEUE" = "shuf",
+	"PAUSE" = "pause_t"
 }
 export class MusicPlayer extends BaseCallbackWatcher {
 	static instances: Map<string, MusicPlayer> = new Map();
@@ -56,7 +57,11 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				new ButtonBuilder()
 					.setCustomId("queue_s")
 					.setLabel("Очередь")
-					.setStyle(ButtonStyle.Primary)
+					.setStyle(ButtonStyle.Primary),
+				new ButtonBuilder()
+						.setCustomId("pause_t")
+						.setLabel("Пуза")
+						.setStyle(ButtonStyle.Primary)
 			);
 		this.actionRowModes = new ActionRowBuilder<ButtonBuilder>()
 			.addComponents(
@@ -154,6 +159,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
         let footerText = "Mode:"
         if (this.mode === Modes.NORMAL) footerText = `${footerText} обычный`
         if (this.mode === Modes.REPEAT) footerText = `${footerText} повтор`
+		if (this.mode === Modes.REPEAT_Q) footerText = `${footerText} повтор очереди`
         embed.setFooter({
             "text": footerText
         });
@@ -279,6 +285,43 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				await interaction.reply({
 					"ephemeral": true, "content": "Перемешал очередь"
 				});
+				return;
+			}
+			if (interaction.customId === PlayerButtonsEnum.PAUSE) {
+				if(this.player!.paused) {
+					await this.player!.pause(false);
+					const embed = this.generateTrackEmbed(this.nowPlaying!);
+
+					let footerText = "Mode:"
+					if (this.mode === Modes.NORMAL) footerText = `${footerText} обычный`
+					if (this.mode === Modes.REPEAT) footerText = `${footerText} повтор`
+					if (this.mode === Modes.REPEAT_Q) footerText = `${footerText} повтор очереди`
+					embed.setFooter({
+						"text": footerText
+					});
+					const msg = await interaction.deferUpdate({
+						"fetchReply": true
+					});
+					try {
+						await msg.edit({
+							"embeds": [embed], "components": [this.actionRow, this.actionRowModes]
+						})
+					} catch (_) {}
+					return;
+				}
+				await this.player!.pause(true);
+				const embed = this.generateTrackEmbed(this.nowPlaying!);
+				embed.setFooter({
+					"text": "Трек на пузе"
+				});
+				const msg = await interaction.deferUpdate({
+					"fetchReply": true
+				});
+				try {
+					await msg.edit({
+						"embeds": [embed], "components": [this.actionRow, this.actionRowModes]
+					})
+				} catch (_) {}
 				return;
 			}
 			if (interaction.customId === PlayerButtonsEnum.STOP_PLAY) {
