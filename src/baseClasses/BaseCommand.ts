@@ -4,6 +4,7 @@ import { BotCLient } from "../Client";
 export interface CommandDescription {
     name: string;
     load: boolean;
+    desc: string;
 }
 export interface CommandArgs {
     client: BotCLient;

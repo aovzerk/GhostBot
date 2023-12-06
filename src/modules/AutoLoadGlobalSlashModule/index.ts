@@ -19,6 +19,11 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 				"type": 1
 			},
 			{
+				"name": "help",
+				"description": "Show bot commands",
+				"type": 1
+			},
+			{
 				"name": "getplayer",
 				"description": "Get music player",
 				"type": 1
@@ -84,6 +89,7 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 				Routes.applicationCommands(botId),
 				{ "body": this.commands }
 			);
+			console.log("Slash global registered");
 		}
 
 		return true;

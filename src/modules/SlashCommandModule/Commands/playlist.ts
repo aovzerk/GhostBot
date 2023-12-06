@@ -3,7 +3,8 @@ import { BaseCommand, CommandDescription, CommandInteractionArgs, CommandRespons
 import { MusicPlayer } from "../libs/MusicPlayer";
 const descriptionCommand: CommandDescription = {
 	"name": "playlist",
-	"load": true
+	"load": true,
+	"desc": "``/playlist`` - воспроизвести плейлист или добавить плейлист в очередь"
 };
 
 export default class Playlist implements BaseCommand {

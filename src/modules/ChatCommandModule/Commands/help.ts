@@ -2,7 +2,9 @@ import { BotCLient } from "../../../Client";
 import { BaseCommand, CommandArgs, CommandDescription, CommandResponse, CommandState } from "../../../baseClasses/BaseCommand";
 const descriptionCommand: CommandDescription = {
 	"name": "help",
-	"load": true
+	"load": true,
+	"desc": "``help`` - затчка"
+
 };
 
 export default class Help implements BaseCommand {

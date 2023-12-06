@@ -5,7 +5,8 @@ import fs from "fs";
 import path from "path";
 const descriptionCommand: CommandDescription = {
 	"name": "reload_slash_cmd",
-	"load": true
+	"load": true,
+	"desc": "``reload_slash_cmd`` - перезагрузка слеш команд"
 };
 
 export default class ReloadSlashCmd implements BaseCommand {
@@ -36,7 +37,7 @@ export default class ReloadSlashCmd implements BaseCommand {
 			this.client.slashCommandModule.commands.delete(cmdName);
 
 			const files = fs.readdirSync(`${path.resolve()}/src/modules/SlashCommandModule/Commands`).filter(el => (el.endsWith(".ts") || el.endsWith(".js")) && !el.endsWith(".d.ts"));
-			const file = files.find(el => el.includes(cmdName));
+			const file = files.find(el => el === `${cmdName}.ts` || el === `${cmdName}.js`);
 			delete require.cache[`${path.resolve()}/src/modules/SlashCommandModule/Commands/${file}`];
 			const commandFile = await import(`${path.resolve()}/src/modules/SlashCommandModule/Commands/${file}`);
 			const commandNew = new commandFile.default(this.client) as BaseCommand;

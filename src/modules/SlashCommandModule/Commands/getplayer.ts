@@ -3,7 +3,8 @@ import { BaseCommand, CommandDescription, CommandInteractionArgs, CommandRespons
 import { MusicPlayer } from "../libs/MusicPlayer";
 const descriptionCommand: CommandDescription = {
 	"name": "getplayer",
-	"load": true
+	"load": true,
+	"desc": "``/getplayer`` - получить экземляр плеера, когда он например улетает вверх из-за сообщений"
 };
 
 export default class GetplayerPing implements BaseCommand {
