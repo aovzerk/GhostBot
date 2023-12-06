@@ -60,7 +60,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 					.setStyle(ButtonStyle.Primary),
 				new ButtonBuilder()
 						.setCustomId("pause_t")
-						.setLabel("Пуза")
+						.setLabel("Пауза")
 						.setStyle(ButtonStyle.Primary)
 			);
 		this.actionRowModes = new ActionRowBuilder<ButtonBuilder>()
