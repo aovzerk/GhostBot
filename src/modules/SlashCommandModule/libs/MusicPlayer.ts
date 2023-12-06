@@ -315,7 +315,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		let playListongs: SongInfo[] | null = null;
 			let song: SongInfo | null = null;
 			if(isPlayList) {
-				playListongs = await this.getPlaylistSongs(option, this.member);
+				playListongs = await this.getPlaylistSongs(option, member);
 				if(!playListongs) {
 					await this.sendErrorSearchSong(interaction);
 					return;
@@ -324,7 +324,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				playListongs.forEach(el => this.queue.push(el));
 				if(this.mode === Modes.REPEAT_Q) playListongs.forEach(el => this.tmpQueue!.push(el));
 			} else {
-				song = await this.getSong(option, this.member);
+				song = await this.getSong(option, member);
 			}
 		if (!song) {
 			await this.sendErrorSearchSong(interaction);
