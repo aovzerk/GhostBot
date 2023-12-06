@@ -157,8 +157,8 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	}
 	generateProgressBar(): string | null {
 		try {
+			if(this.player!.timestamp == null) return null;
 			const timeCrrent = Date.now() - this.player!.timestamp!;
-			if(timeCrrent >= this.nowPlaying!.length) return null;
 			const durationTrack = this.millisToMinutesAndSeconds(this.nowPlaying!.length);
 			const currentDurationTrack = this.millisToMinutesAndSeconds(timeCrrent);
 			const percent = ( ( 100 * timeCrrent ) / this.nowPlaying!.length ) / 10;
