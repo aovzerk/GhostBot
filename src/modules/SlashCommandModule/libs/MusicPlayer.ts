@@ -92,13 +92,20 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			return null;
 		}
 	}
-	async getPlaylistSongs(search: string, requester: GuildMember): Promise<SongInfo[] | null> {
+	async getPlaylistSongs(search: string, requester: GuildMember): Promise<{
+		playlListName: string;
+		songs: SongInfo[]
+	} | null> {
 		try {
 			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
 			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
 			const data = (await Rest.load(node, request)) as any;
+			if(data.loadType !== "playlist") {
+				return null;
+			}
 			const songs: SongInfo[] = [];
-			for(const song of data.data) {
+			const namePlaylist = data.data.info.name;
+			for(const song of data.data.tracks) {
 				songs.push({
 					"title": song.info.title,
 					"url": song.info.uri,
@@ -108,7 +115,10 @@ export class MusicPlayer extends BaseCallbackWatcher {
 					"request_by": requester.id
 				});
 			}
-			return songs;
+			return {
+				"playlListName": namePlaylist,
+				"songs": songs
+			};
 		} catch (_) {
 			return null;
 		}
@@ -161,10 +171,10 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		});
 		return msg;
 	}
-	async sendEmbedAddedPlayList(songInfo: SongInfo, interaction: ChatInputCommandInteraction): Promise<Message> {
+	async sendEmbedAddedPlayList(songInfo: SongInfo, playlistName: string, interaction: ChatInputCommandInteraction): Promise<Message> {
 		const embed = this.generateTrackEmbed(songInfo);
 		embed.setTitle(songInfo.author);
-		embed.setDescription(`Плейлист добавлен в очередь`);
+		embed.setDescription(`Плейлист \`\`${playlistName}\`\` добавлен в очередь`);
 		const msg = await interaction.editReply({
 			"embeds": [embed]
 		});
@@ -173,6 +183,11 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	async sendErrorSearchSong(interaction: ChatInputCommandInteraction) {
 		await interaction.editReply({
 			"content": "Произошла ошибка в поиске трека"
+		});
+	}
+	async sendErrorSearchSongPlaylist(interaction: ChatInputCommandInteraction) {
+		await interaction.editReply({
+			"content": "Произошла ошибка в поиске плейлиста"
 		});
 	}
 	async sendErrorAddSong(interaction: ChatInputCommandInteraction) {
@@ -244,7 +259,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			if(interaction.message.id !== this.msg.id) return;
 			this.lastEvent = interaction.customId;
 			if(interaction.customId === PlayerButtonsEnum.SHOW_QUEUE) {
-				const queueWatcher = new ShowQueueMessageWatcher(this.client, this.queue);
+				const queueWatcher = new ShowQueueMessageWatcher(this.client, this.mode === Modes.REPEAT_Q ? this.tmpQueue! : this.queue);
 				this.queueWatchers.push(queueWatcher);
 				await queueWatcher.init(interaction);
 				return;
@@ -256,7 +271,10 @@ export class MusicPlayer extends BaseCallbackWatcher {
                 return;
             }
 			if (interaction.customId === PlayerButtonsEnum.SHUFFLE_QUEUE) {
-				if(this.mode === Modes.REPEAT_Q) this.shuffleQeue(true);
+				if(this.mode === Modes.REPEAT_Q) {
+					this.shuffleQeue(true);
+					this.nowPlayingTmpQueueId = this.tmpQueue!.length == 1 ? 0 : 1;
+				}
 				else this.shuffleQeue();
 				await interaction.reply({
 					"ephemeral": true, "content": "Перемешал очередь"
@@ -351,14 +369,17 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			return;
 		}
 		const option = interaction.options.getString("request")!;
+		let playlistName: string | null = null;
 		let playListongs: SongInfo[] | null = null;
 			let song: SongInfo | null = null;
 			if(isPlayList) {
-				playListongs = await this.getPlaylistSongs(option, member);
-				if(!playListongs) {
+				const playlist = await this.getPlaylistSongs(option, member);
+				if(!playlist) {
 					await this.sendErrorSearchSong(interaction);
 					return;
 				}
+				playListongs = playlist!.songs;
+				playlistName = playlist.playlListName;
 				song = playListongs[0];
 				playListongs.forEach(el => this.queue.push(el));
 				if(this.mode === Modes.REPEAT_Q) playListongs.forEach(el => this.tmpQueue!.push(el));
@@ -371,7 +392,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		}
 		let msg: Message | null = null;
 		if(isPlayList) {
-			msg = await this.sendEmbedAddedPlayList(song, interaction);
+			msg = await this.sendEmbedAddedPlayList(song, playlistName!, interaction);
 		} else {
 			msg = await this.sendEmbedAddedSong(song, interaction);
 			this.queue.push(song);
@@ -382,7 +403,9 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	}
 	async destroy() {
 		MusicPlayer.instances.delete(this.interaction.guild!.id);
-		this.player!.removeAllListeners("end");
+		try {
+			this.player!.removeAllListeners("end");
+		} catch (_) {}
 		try {
 			await this.player!.stop();
 		} catch (_) {}
@@ -410,12 +433,13 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			let playListongs: SongInfo[] | null = null;
 			let song: SongInfo | null = null;
 			if(isPlayList) {
-				playListongs = await this.getPlaylistSongs(option, this.member);
-				if(!playListongs) {
-					await this.sendErrorSearchSong(this.interaction);
+				const playlist = await this.getPlaylistSongs(option, this.member);
+				if(!playlist) {
+					await this.sendErrorSearchSongPlaylist(this.interaction);
 					await this.destroy();
 					return;
 				}
+				playListongs = playlist.songs;
 				song = playListongs[0];
 				for(let i = 1; i < playListongs.length; i++) {
 					this.queue.push(playListongs[i])
