@@ -25,15 +25,15 @@ export class SendSDCBotStat extends BaseModule {
 			},
 			"body": JSON.stringify(body)
 		});
+		const text = await res.text();
 		if (res.status === 200) {
 			this.client.logger.addLog({
-				"data": "Статистика на SDC bots опубликована",
+				"data": `Статистика на SDC bots опубликована ${text}`,
 				"guildId": "null",
 				"guildName": "null",
 				"mdoule_name": this.moduleName
 			});
 		} else {
-			const text = await res.text();
 			this.client.logger.addLog({
 				"data": `Ошибка отправки статистики на SDC bots status: ${res.status} text: ${text}`,
 				"guildId": "null",
