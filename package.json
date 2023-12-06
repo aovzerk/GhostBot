@@ -19,7 +19,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "discord.js": "^14.13.0",
+    "discord.js": "^14.14.1",
     "i": "^0.3.7",
     "lavacord": "^2.1.1-v4",
     "moment": "^2.29.4",
