@@ -9,6 +9,7 @@ import path from "path";
 import { SlashCommandModule } from "./modules/SlashCommandModule";
 import { AutoLoadGlobalSlashModule } from "./modules/AutoLoadGlobalSlashModule";
 import { BotStatusModule } from "./modules/BotStatusModule";
+import { SendSDCBotStat } from "./modules/SendSDCBotStat";
 
 export class BotCLient extends Client {
 	isDevBot: boolean;
@@ -17,6 +18,7 @@ export class BotCLient extends Client {
 	slashCommandModule: SlashCommandModule;
 	autoLoadGlobalSlash: AutoLoadGlobalSlashModule;
 	botStatusModule: BotStatusModule;
+	sendSDCBotStat: SendSDCBotStat;
 	logger: Logger;
 	prefix: string;
 	constructor(prefix: string, dev = false) {
@@ -27,6 +29,7 @@ export class BotCLient extends Client {
 		this.slashCommandModule = new SlashCommandModule(this);
 		this.autoLoadGlobalSlash = new AutoLoadGlobalSlashModule(this);
 		this.botStatusModule = new BotStatusModule(this);
+		this.sendSDCBotStat = new SendSDCBotStat(this);
 		this.botHandlers = [];
 		this.logger = new Logger(`${path.resolve()}/logs`);
 		this.prefix = prefix;
@@ -40,7 +43,8 @@ export class BotCLient extends Client {
 			this.chatCommandModule.load(),
 			this.slashCommandModule.load(),
 			this.autoLoadGlobalSlash.load(),
-			this.botStatusModule.load()
+			this.botStatusModule.load(),
+			this.sendSDCBotStat.load()
 		]);
 	}
 	public async loginBot() {

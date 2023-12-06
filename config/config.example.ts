@@ -29,5 +29,6 @@ export const config = {
 	"dev_token": "",
 	"token": "",
 	"mongoUrl": "",
+	"SDC_api_key": "",
 	"intents": intetns
 };
