@@ -6,4 +6,4 @@ export type SongInfo = {
     "length": number,
 	"thumb": string,
 	"request_by": string
-}
+};
