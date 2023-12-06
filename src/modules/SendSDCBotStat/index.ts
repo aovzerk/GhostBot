@@ -44,6 +44,7 @@ export class SendSDCBotStat extends BaseModule {
 	}
 	public async init(): Promise<boolean> {
 		if (this.isLoad) {
+			await this.sendStat();
 			this.interval = setInterval(async () => {
 				await this.sendStat();
 			}, 1 * 60 * 1000);
