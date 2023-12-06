@@ -79,12 +79,13 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
 			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
 			const data = (await Rest.load(node, request)) as any;
+			console.log(data)
 			const songInfo: SongInfo = {
-				"title": data.tracks[0].info.title,
-				"url": data.tracks[0].info.uri,
-				"author": data.tracks[0].info.author,
-				"track": data.tracks[0].track,
-				"thumb": `https://img.youtube.com/vi/${data.tracks[0].info.identifier}/0.jpg`,
+				"title": data.data[0].info.title,
+				"url": data.data[0].info.uri,
+				"author": data.data[0].info.author,
+				"track": data.data[0].track,
+				"thumb": `https://img.youtube.com/vi/${data.data[0].info.identifier}/0.jpg`,
 				"request_by": requester.id
 			};
 			return songInfo;
@@ -98,7 +99,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
 			const data = (await Rest.load(node, request)) as any;
 			const songs: SongInfo[] = [];
-			for(const song of data.tracks) {
+			for(const song of data.data) {
 				songs.push({
 					"title": song.info.title,
 					"url": song.info.uri,
