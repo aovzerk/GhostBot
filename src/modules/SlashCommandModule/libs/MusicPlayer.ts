@@ -140,16 +140,6 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			return false;
 		}
 	}
-	generateEmbedQueue() {
-		const embed = new EmbedBuilder()
-		.setTitle("Очередь");
-		let desc = "";
-		for(const song of this.queue) {
-			desc = `${desc}\n[${song.title}](${song.url}) - <@${song.request_by}>`;
-		}
-		embed.setDescription(desc === "" ? "Очередь пуста" : desc);
-		return embed;
-	}
 	millisToMinutesAndSeconds(millis: number) {
 		const minutes = Math.floor(millis / 60000);
 		const seconds = Number(((millis % 60000) / 1000).toFixed(0));
