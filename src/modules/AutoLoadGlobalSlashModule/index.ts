@@ -15,48 +15,48 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 		this.commands = [
 			{
 				"name": "ping",
-				"description": "Ping bot!",
+				"description": "Пинг бота",
 				"type": 1
 			},
 			{
 				"name": "help",
-				"description": "Show bot commands",
+				"description": "Список команд",
 				"type": 1
 			},
 			{
 				"name": "getplayer",
-				"description": "Get music player",
+				"description": "Получить плеер",
 				"type": 1
 			},
 			{
 				"name": "play",
-				"description": "Play music",
+				"description": "Воспроизвести музыку",
 				"type": 1, // chat command
 				"options": [
 					{
 						"type": 3, // string
 						"name": "request",
 						"required": true,
-						"description": "Url or text"
+						"description": "Ссылка или текст"
 					}
 				]
 			},
 			{
 				"name": "playlist",
-				"description": "Play youtube playlist music",
+				"description": "Воспроизвести плейлист",
 				"type": 1, // chat command
 				"options": [
 					{
 						"type": 3, // string
 						"name": "request",
 						"required": true,
-						"description": "Url or text"
+						"description": "Ссылка"
 					}
 				]
 			},
 			{
 				"name": "avatar",
-				"description": "Show user avatar",
+				"description": "Показать аватар юзера",
 				"type": 1, // chat command
 				"options": [
 					{
@@ -69,7 +69,7 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 			},
 			{
 				"name": "changedj",
-				"description": "Change Dj",
+				"description": "Сменить DJ",
 				"type": 1, // chat command
 				"options": [
 					{
