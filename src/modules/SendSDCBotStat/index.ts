@@ -21,6 +21,7 @@ export class SendSDCBotStat extends BaseModule {
 		const res = await fetch(`https://api.server-discord.com/v2/bots/${this.botId}/stats`, {
 			"method": "POST",
 			"headers": {
+				"Content-Type": "application/json",
 				"Authorization": `SDC ${config.SDC_api_key}`
 			},
 			"body": JSON.stringify(body)
