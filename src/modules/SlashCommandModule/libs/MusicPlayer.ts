@@ -79,12 +79,11 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
 			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
 			const data = (await Rest.load(node, request)) as any;
-			console.log(data)
 			const songInfo: SongInfo = {
 				"title": data.data[0].info.title,
 				"url": data.data[0].info.uri,
 				"author": data.data[0].info.author,
-				"track": data.data[0].track,
+				"track": data.data[0].encoded,
 				"thumb": `https://img.youtube.com/vi/${data.data[0].info.identifier}/0.jpg`,
 				"request_by": requester.id
 			};
@@ -104,7 +103,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 					"title": song.info.title,
 					"url": song.info.uri,
 					"author": song.info.author,
-					"track": song.track,
+					"track": song.encoded,
 					"thumb": `https://img.youtube.com/vi/${song.info.identifier}/0.jpg`,
 					"request_by": requester.id
 				});
@@ -320,7 +319,6 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	setHandlersPlayer() {
 		this.player!.on("end", async () => {
 			if (this.isDestroy) return;
-			console.log(this.mode);
 			if (this.queue.length === 0 && this.mode === Modes.NORMAL) {
 				await this.destroy();
 				return;
