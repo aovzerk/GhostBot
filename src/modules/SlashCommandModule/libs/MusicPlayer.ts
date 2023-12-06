@@ -39,6 +39,8 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	voiceChannelId: string | null = null;
     mode: Modes = Modes.NORMAL;
 	queue: SongInfo[] = [];
+	intervalUpdateProgressBar: NodeJS.Timeout | undefined;
+	timeToUpdateProgressBar: number = 5000;
 	constructor(client: BotCLient, interaction: ChatInputCommandInteraction, member: GuildMember) {
 		super(client);
 		this.client = client;
@@ -89,6 +91,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				"url": data.data[0].info.uri,
 				"author": data.data[0].info.author,
 				"track": data.data[0].encoded,
+				"length": data.data[0].info.length,
 				"thumb": `https://img.youtube.com/vi/${data.data[0].info.identifier}/0.jpg`,
 				"request_by": requester.id
 			};
@@ -116,6 +119,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 					"url": song.info.uri,
 					"author": song.info.author,
 					"track": song.encoded,
+					"length": song.info.length,
 					"thumb": `https://img.youtube.com/vi/${song.info.identifier}/0.jpg`,
 					"request_by": requester.id
 				});
@@ -136,14 +140,6 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			return false;
 		}
 	}
-	generateTrackEmbed(songInfo: SongInfo) {
-		const embed = new EmbedBuilder()
-			.setTitle(songInfo.title)
-			.setDescription(`${songInfo.author}\n\n запросил: <@${songInfo.request_by}>`)
-			.setURL(songInfo.url)
-			.setThumbnail(songInfo.thumb);
-		return embed;
-	}
 	generateEmbedQueue() {
 		const embed = new EmbedBuilder()
 		.setTitle("Очередь");
@@ -153,6 +149,59 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		}
 		embed.setDescription(desc === "" ? "Очередь пуста" : desc);
 		return embed;
+	}
+	millisToMinutesAndSeconds(millis: number) {
+		const minutes = Math.floor(millis / 60000);
+		const seconds = Number(((millis % 60000) / 1000).toFixed(0));
+		return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+	}
+	generateProgressBar(): string | null {
+		try {
+			const timeCrrent = Date.now() - this.player!.timestamp!;
+			if(timeCrrent >= this.nowPlaying!.length) return null;
+			const durationTrack = this.millisToMinutesAndSeconds(this.nowPlaying!.length);
+			const currentDurationTrack = this.millisToMinutesAndSeconds(timeCrrent);
+			const percent = ( ( 100 * timeCrrent ) / this.nowPlaying!.length ) / 10;
+			let bar = "";
+			for(let i = 0; i < percent * 3 - 1; i++) {
+				bar = `${bar}=`;
+			}
+			bar = `${bar}>`;
+			for(let i = bar.length; i < 30; i++) {
+				bar = `${bar} `;
+			}
+			const str = `\`\`[${bar}][${currentDurationTrack}/${durationTrack}]\`\``;
+			return str;
+		} catch (error) {
+			return null;
+		}
+	}
+	generateTrackEmbed(songInfo: SongInfo) {
+		const progressBar = this.generateProgressBar();
+		const embed = new EmbedBuilder()
+			.setTitle(songInfo.title)
+			.setDescription(`${songInfo.author}\n\n запросил: <@${songInfo.request_by}>\n\n`)
+			.setURL(songInfo.url)
+			.setThumbnail(songInfo.thumb);
+		if(progressBar !== null) {
+			embed.setDescription(`${songInfo.author}\n\n запросил: <@${songInfo.request_by}>\n\n${progressBar}`)
+		}
+		return embed;
+	}
+	async updateMainMsgForProgressBar() {
+		try {
+			const embed = this.generateTrackEmbed(this.nowPlaying!);
+			let footerText = "Mode:"
+			if (this.mode === Modes.NORMAL) footerText = `${footerText} обычный`
+			if (this.mode === Modes.REPEAT) footerText = `${footerText} повтор`
+			if (this.mode === Modes.REPEAT_Q) footerText = `${footerText} повтор очереди`
+			embed.setFooter({
+				"text": footerText
+			});
+			this.msg = await this.msg!.edit({
+				"embeds": [embed], "components": [this.actionRow, this.actionRowModes]
+			})
+		} catch (_) {}
 	}
 	async sendEmbedPlayer(songInfo: SongInfo, interaction: ChatInputCommandInteraction): Promise<Message> {
 		const embed = this.generateTrackEmbed(songInfo);
@@ -446,6 +495,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	}
 	async destroy() {
 		MusicPlayer.instances.delete(this.interaction.guild!.id);
+		clearInterval(this.intervalUpdateProgressBar);
 		try {
 			this.player!.removeAllListeners("end");
 		} catch (_) {}
@@ -498,8 +548,11 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			this.nowPlaying = song;
 			await this.createPlayer();
 			this.setHandlersPlayer();
-			await this.sendEmbedPlayer(song!, this.interaction);
 			await this.player!.play(song.track);
+			await this.sendEmbedPlayer(song!, this.interaction);
+			this.intervalUpdateProgressBar = setInterval(async () => {
+				await this.updateMainMsgForProgressBar();
+			}, this.timeToUpdateProgressBar);
 			return true;
 		} catch (error) {
 			console.log(error);
