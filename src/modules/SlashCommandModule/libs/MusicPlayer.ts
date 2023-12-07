@@ -484,11 +484,11 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		deleteMsgAfterTimeout(msg, 7000);
 	}
 	async destroy() {
-		MusicPlayer.instances.delete(this.interaction.guild!.id);
 		clearInterval(this.intervalUpdateProgressBar);
 		try {
 			this.player!.removeAllListeners("end");
 		} catch (_) {}
+		this.destroyCallbacks();
 		try {
 			await this.player!.stop();
 		} catch (_) {}
@@ -504,7 +504,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		for(const queueWatcher of this.queueWatchers) {
 			await queueWatcher.destroy();
 		}
-		this.destroyCallbacks();
+		MusicPlayer.instances.delete(this.interaction.guild!.id);
 	}
 	async init(isPlayList = false) {
 		try {
