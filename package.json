@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/giphy-api": "^2.0.6",
     "@types/node": "^20.8.2",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "discord.js": "^14.14.1",
+    "giphy-api": "^2.0.2",
     "i": "^0.3.7",
     "lavacord": "^2.1.1-v4",
     "moment": "^2.29.4",

@@ -6,7 +6,8 @@ import path from "path";
 const descriptionCommand: CommandDescription = {
 	"name": "reload_slash_cmd",
 	"load": true,
-	"desc": "``reload_slash_cmd`` - перезагрузка слеш команд"
+	"desc": "``reload_slash_cmd`` - перезагрузка слеш команд",
+	"isVisible": false
 };
 
 export default class ReloadSlashCmd implements BaseCommand {

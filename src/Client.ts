@@ -10,6 +10,8 @@ import { SlashCommandModule } from "./modules/SlashCommandModule";
 import { AutoLoadGlobalSlashModule } from "./modules/AutoLoadGlobalSlashModule";
 import { BotStatusModule } from "./modules/BotStatusModule";
 import { SendSDCBotStat } from "./modules/SendSDCBotStat";
+import { AutoSendMessageAfterJoinMember } from "./modules/AutoSendMessageAfterJoinMember";
+import { AutoSetRolesNewMembers } from "./modules/AutoSetRolesNewMembers";
 
 export class BotCLient extends Client {
 	isDevBot: boolean;
@@ -19,31 +21,37 @@ export class BotCLient extends Client {
 	autoLoadGlobalSlash: AutoLoadGlobalSlashModule;
 	botStatusModule: BotStatusModule;
 	sendSDCBotStat: SendSDCBotStat;
+	autoSendMessageAfterJoinMember: AutoSendMessageAfterJoinMember;
+	autoSetRolesNewMembers: AutoSetRolesNewMembers;
 	logger: Logger;
 	prefix: string;
 	constructor(prefix: string, dev = false) {
 		super({
 			"intents": config.intents
 		});
+		this.isDevBot = dev;
 		this.chatCommandModule = new ChatCommandModule(this);
 		this.slashCommandModule = new SlashCommandModule(this);
 		this.autoLoadGlobalSlash = new AutoLoadGlobalSlashModule(this);
 		this.botStatusModule = new BotStatusModule(this);
 		this.sendSDCBotStat = new SendSDCBotStat(this);
+		this.autoSendMessageAfterJoinMember = new AutoSendMessageAfterJoinMember(this);
+		this.autoSetRolesNewMembers = new AutoSetRolesNewMembers(this);
 		this.botHandlers = [];
 		this.logger = new Logger(`${path.resolve()}/logs`);
 		this.prefix = prefix;
-		this.isDevBot = dev;
 	}
 	public async initBot() {
 		await Promise.all([
 			this.logger.init(),
-			connectMongo(),
+			await connectMongo(),
 			loadAllHandlers(this),
 			this.chatCommandModule.load(),
 			this.slashCommandModule.load(),
 			this.autoLoadGlobalSlash.load(),
 			this.botStatusModule.load(),
+			this.autoSendMessageAfterJoinMember.load(),
+			this.autoSetRolesNewMembers.load(),
 			this.sendSDCBotStat.load()
 		]);
 	}

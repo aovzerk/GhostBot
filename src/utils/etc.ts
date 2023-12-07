@@ -11,3 +11,6 @@ export function deleteMsgAfterTimeout(msg: Message, ms: number, verbose = false)
 		}
 	}, ms);
 }
+export function getRandomInt(max: number) {
+	return Math.floor(Math.random() * max);
+}

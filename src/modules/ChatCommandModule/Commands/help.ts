@@ -3,8 +3,8 @@ import { BaseCommand, CommandArgs, CommandDescription, CommandResponse, CommandS
 const descriptionCommand: CommandDescription = {
 	"name": "help",
 	"load": true,
-	"desc": "``help`` - затчка"
-
+	"desc": "``help`` - затчка",
+	"isVisible": false
 };
 
 export default class Help implements BaseCommand {

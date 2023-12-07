@@ -4,7 +4,8 @@ import { BaseCommand, CommandDescription, CommandInteractionArgs, CommandRespons
 const descriptionCommand: CommandDescription = {
 	"name": "help",
 	"load": true,
-	"desc": "``/help`` - список команд"
+	"desc": "``/help`` - список команд",
+	"isVisible": true
 };
 
 export default class Help implements BaseCommand {
@@ -22,12 +23,18 @@ export default class Help implements BaseCommand {
 	public async run(params: CommandInteractionArgs): Promise<CommandResponse> {
 		try {
 			const embed = new EmbedBuilder()
-				.setTitle("Команды");
-			let desc = "";
+				.setTitle(`Команды. Префикс(только для чат команд) - ${this.client.prefix}`);
+			let desc = "```Слеш команды```\n";
 			for (const command of this.client.slashCommandModule.commands) {
+				if (!command[1].description.isVisible) continue;
 				desc = `${desc}${command[1].description.desc}\n`;
 			}
-			embed.setDescription(desc);
+			let desc2 = "```Чат команды```\n";
+			for (const command of this.client.chatCommandModule.commands) {
+				if (!command[1].description.isVisible) continue;
+				desc2 = `${desc2}${command[1].description.desc}\n`;
+			}
+			embed.setDescription(`${desc}\n${desc2}`);
 			await params.interaction.reply({
 				"embeds": [embed]
 			});

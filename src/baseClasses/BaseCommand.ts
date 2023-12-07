@@ -5,6 +5,7 @@ export interface CommandDescription {
     name: string;
     load: boolean;
     desc: string;
+    isVisible: boolean;
 }
 export interface CommandArgs {
     client: BotCLient;

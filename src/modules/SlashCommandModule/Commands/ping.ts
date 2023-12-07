@@ -3,7 +3,8 @@ import { BaseCommand, CommandDescription, CommandInteractionArgs, CommandRespons
 const descriptionCommand: CommandDescription = {
 	"name": "ping",
 	"load": true,
-	"desc": "``/ping`` - узнать пинг бота"
+	"desc": "``/ping`` - узнать пинг бота",
+	"isVisible": true
 };
 
 export default class Ping implements BaseCommand {

@@ -7,7 +7,7 @@ import { config } from "../../../config/config";
 
 export class AutoLoadGlobalSlashModule extends BaseModule {
 	commands: any[];
-	isLoad: boolean = false;
+	isLoad: boolean = true;
 	rest: REST;
 	constructor(client: BotCLient) {
 		super(client, "AutoLoadGlobalSlashModule");
@@ -16,6 +16,18 @@ export class AutoLoadGlobalSlashModule extends BaseModule {
 			{
 				"name": "ping",
 				"description": "Пинг бота",
+				"type": 1
+			},
+			{
+				"name": "enabadvcommand",
+				"description": "Включить дополнительные команды",
+				"default_member_permissions": 8,
+				"type": 1
+			},
+			{
+				"name": "disabadvcommand",
+				"description": "Выключить дополнительные команды",
+				"default_member_permissions": 8,
 				"type": 1
 			},
 			{

@@ -29,6 +29,8 @@ export const config = {
 	"dev_token": "",
 	"token": "",
 	"mongoUrl": "",
+	"dbName": "",
+	"giphyApiKey": "",
 	"SDC_api_key": "",
 	"intents": intetns
 };

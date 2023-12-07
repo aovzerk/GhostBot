@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, REST } from "discord.js";
 import { BaseCommand, CommandResponse } from "../../baseClasses/BaseCommand";
 import { CommandParser, ParserInteractionCommand } from "../../../libs/CommandParser";
 import { BotCLient } from "../../Client";
@@ -14,6 +14,7 @@ export class SlashCommandModule extends BaseModule {
 	commandParser: CommandParser;
 	nodes: LavalinkNodeOptions[];
 	managerLavalink: Manager;
+	rest: REST;
 	constructor(client: BotCLient) {
 		super(client, "SlashCommandModule");
 		this.commands = new Map();
@@ -22,6 +23,7 @@ export class SlashCommandModule extends BaseModule {
 		this.managerLavalink = new Manager(this.client, this.nodes, {
 			"user": this.client.isDevBot ? config.dev_botId : config.botId
 		});
+		this.rest = new REST().setToken(this.client.isDevBot ? config.dev_token : config.token);
 	}
 	private async loadSlashCommands(client: BotCLient) {
 		const files = fs.readdirSync(`${path.resolve()}/src/modules/SlashCommandModule/Commands`).filter(el => (el.endsWith(".ts") || el.endsWith(".js")) && !el.endsWith(".d.ts"));

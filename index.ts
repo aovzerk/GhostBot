@@ -1,6 +1,6 @@
 import { BotCLient } from "./src/Client";
 
-const myBot = new BotCLient("g!", false);
+const myBot = new BotCLient("g!", true);
 
 async function main() {
 	await myBot.startBot();

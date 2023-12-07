@@ -4,7 +4,8 @@ import { MusicPlayer } from "../libs/MusicPlayer";
 const descriptionCommand: CommandDescription = {
 	"name": "play",
 	"load": true,
-	"desc": "``/play`` - воспроизвести трек или добавить его в очередь"
+	"desc": "``/play`` - воспроизвести трек или добавить его в очередь",
+	"isVisible": true
 };
 
 export default class Play implements BaseCommand {

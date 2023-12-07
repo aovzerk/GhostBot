@@ -5,7 +5,8 @@ import { deleteMsgAfterTimeout } from "../../../utils/etc";
 const descriptionCommand: CommandDescription = {
 	"name": "avatar",
 	"load": true,
-	"desc": "``/avatar`` - показать аватарку юзера"
+	"desc": "``/avatar`` - показать аватарку юзера",
+	"isVisible": true
 };
 
 export default class Ping implements BaseCommand {

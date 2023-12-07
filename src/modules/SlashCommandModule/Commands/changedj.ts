@@ -5,7 +5,8 @@ import { MusicPlayer } from "../libs/MusicPlayer";
 const descriptionCommand: CommandDescription = {
 	"name": "changedj",
 	"load": true,
-	"desc": "``/changedj`` - сменить DJ в плеере"
+	"desc": "``/changedj`` - сменить DJ в плеере",
+	"isVisible": true
 };
 
 export default class Сhangedj implements BaseCommand {

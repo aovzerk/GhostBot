@@ -4,7 +4,8 @@ import { MusicPlayer } from "../libs/MusicPlayer";
 const descriptionCommand: CommandDescription = {
 	"name": "getplayer",
 	"load": true,
-	"desc": "``/getplayer`` - получить экземляр плеера, когда он например улетает вверх из-за сообщений"
+	"desc": "``/getplayer`` - получить экземляр плеера, когда он например улетает вверх из-за сообщений",
+	"isVisible": true
 };
 
 export default class GetplayerPing implements BaseCommand {
