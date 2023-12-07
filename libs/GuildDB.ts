@@ -21,7 +21,13 @@ export async function getGuildDb(guildId: string) {
 	const guildDB = await createGuildDb(guildId);
 	if (guildDB !== null) return guildDB;
 	const nullGuild = createNullGuild(guildId);
-	await collectionGuilds.insertOne(nullGuild);
+	await collectionGuilds.updateOne({
+		"guildId": nullGuild.guildId
+	}, {
+		"$set": nullGuild
+	}, {
+		"upsert": true
+	});
 	return createGuildDb(guildId);
 }
 class GuildDB {
