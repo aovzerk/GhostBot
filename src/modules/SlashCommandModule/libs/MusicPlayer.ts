@@ -512,6 +512,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			MusicPlayer.instances.set(this.interaction.guild!.id, this);
 			await this.interaction.deferReply();
 			this.setHandlersButtons();
+			this.setHandlerVoiceUpdate();
 			const option = this.interaction.options.getString("request")!;
 			let playListongs: SongInfo[] | null = null;
 			let song: SongInfo | null = null;
