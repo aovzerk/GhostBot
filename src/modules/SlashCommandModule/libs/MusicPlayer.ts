@@ -453,21 +453,21 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		const option = interaction.options.getString("request")!;
 		let playlistName: string | null = null;
 		let playListongs: SongInfo[] | null = null;
-			let song: SongInfo | null = null;
-			if(isPlayList) {
-				const playlist = await this.getPlaylistSongs(option, member);
-				if(!playlist) {
-					await this.sendErrorSearchSong(interaction);
-					return;
-				}
-				playListongs = playlist!.songs;
-				playlistName = playlist.playlListName;
-				song = playListongs[0];
-				playListongs.forEach(el => this.queue.push(el));
-				if(this.mode === Modes.REPEAT_Q) playListongs.forEach(el => this.tmpQueue!.push(el));
-			} else {
-				song = await this.getSong(option, member);
+		let song: SongInfo | null = null;
+		if(isPlayList) {
+			const playlist = await this.getPlaylistSongs(option, member);
+			if(!playlist) {
+				await this.sendErrorSearchSong(interaction);
+				return;
 			}
+			playListongs = playlist!.songs;
+			playlistName = playlist.playlListName;
+			song = playListongs[0];
+			playListongs.forEach(el => this.queue.push(el));
+			if(this.mode === Modes.REPEAT_Q) playListongs.forEach(el => this.tmpQueue!.push(el));
+		} else {
+			song = await this.getSong(option, member);
+		}
 		if (!song) {
 			await this.sendErrorSearchSong(interaction);
 			return;
