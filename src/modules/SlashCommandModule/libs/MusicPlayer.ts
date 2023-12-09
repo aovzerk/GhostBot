@@ -274,7 +274,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	}
 	setHandlerVoiceUpdate() {
 		const callback = async (oldState: VoiceState, newState: VoiceState) => {
-			if(newState.member!.id === this.client.user!.id && newState.channelId === null) {
+			if(newState.guild.id === this.msg?.guild!.id && newState.member!.id === this.client.user!.id && newState.channelId === null) {
 				await this.destroy();
 			}
 		}
