@@ -86,17 +86,23 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
 			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
 			const data = (await Rest.load(node, request)) as any;
-			const songInfo: SongInfo = {
-				"title": data.data[0].info.title,
-				"url": data.data[0].info.uri,
-				"author": data.data[0].info.author,
-				"track": data.data[0].encoded,
-				"length": data.data[0].info.length,
-				"thumb": `https://img.youtube.com/vi/${data.data[0].info.identifier}/0.jpg`,
-				"request_by": requester.id
-			};
-			return songInfo;
+			console.log(data);
+			if(data.loadType === "track" || data.loadType === "search") {
+				const trackInfo = data.loadType === "track" ? data.data : data.data[0];
+				const songInfo: SongInfo = {
+					"title": trackInfo.info.title,
+					"url": trackInfo.info.uri,
+					"author": trackInfo.info.author,
+					"track": trackInfo.encoded,
+					"length": trackInfo.info.length,
+					"thumb": `https://img.youtube.com/vi/${trackInfo.info.identifier}/0.jpg`,
+					"request_by": requester.id
+				};
+				return songInfo;
+			}
+			return null;
 		} catch (_) {
+			console.log(_)
 			return null;
 		}
 	}
