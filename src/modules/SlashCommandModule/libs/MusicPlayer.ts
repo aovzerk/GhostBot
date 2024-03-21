@@ -86,7 +86,6 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			const request = this.isUrl(search) ? search : `ytsearch:${search}`;
 			const node = this.client.slashCommandModule.managerLavalink.idealNodes[0];
 			const data = (await Rest.load(node, request)) as any;
-			console.log(data);
 			if(data.loadType === "track" || data.loadType === "search") {
 				const trackInfo = data.loadType === "track" ? data.data : data.data[0];
 				const songInfo: SongInfo = {
