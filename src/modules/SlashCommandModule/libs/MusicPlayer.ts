@@ -147,7 +147,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	}
 	millisToMinutesAndSeconds(millis: number) {
 		const minutes = Math.floor(millis / 60000);
-		const seconds = Number(((millis % 60000) / 1000).toFixed(0));
+    const seconds = Number(((millis % 60000) / 1000).toFixed(0));
 		return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
 	}
 	generateProgressBar(): string | null {
@@ -280,6 +280,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 	setHandlerVoiceUpdate() {
 		const callback = async (oldState: VoiceState, newState: VoiceState) => {
 			if(newState.guild.id === this.msg?.guild!.id && newState.member!.id === this.client.user!.id && newState.channelId === null) {
+				console.log("TUT1")
 				await this.destroy();
 			}
 		}
@@ -370,6 +371,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			}
 			if (interaction.customId === PlayerButtonsEnum.STOP_PLAY) {
 				this.isDestroy = true;
+				console.log("TUT2")
 				await this.destroy();
 				return;
 			}
@@ -401,7 +403,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 					this.mode = Modes.NORMAL;
 					this.changeQueueAfterRepeatQueue();
 					this.tmpQueue = null;
-					this.nowPlayingTmpQueueId = null;	
+					this.nowPlayingTmpQueueId = null;
 				}
                 else {
 					this.mode = Modes.REPEAT_Q;
@@ -425,6 +427,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		this.player!.on("end", async () => {
 			if (this.isDestroy) return;
 			if (this.queue.length === 0 && this.mode === Modes.NORMAL) {
+				console.log("TUT3")
 				await this.destroy();
 				return;
 			}
@@ -485,10 +488,11 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			this.queue.push(song);
 			if(this.mode === Modes.REPEAT_Q) this.tmpQueue!.push(song);
 		}
-		
+
 		deleteMsgAfterTimeout(msg, 7000);
 	}
 	async destroy() {
+		console.log("TUT4")
 		clearInterval(this.intervalUpdateProgressBar);
 		try {
 			this.player!.removeAllListeners("end");
@@ -525,6 +529,7 @@ export class MusicPlayer extends BaseCallbackWatcher {
 				const playlist = await this.getPlaylistSongs(option, this.member);
 				if(!playlist) {
 					await this.sendErrorSearchSongPlaylist(this.interaction);
+					console.log("TUT5")
 					await this.destroy();
 					return;
 				}
@@ -538,13 +543,15 @@ export class MusicPlayer extends BaseCallbackWatcher {
 			}
 			if (!song) {
 				await this.sendErrorSearchSong(this.interaction);
+				console.log("TUT6")
 				await this.destroy();
 				return;
 			}
 			this.nowPlaying = song;
 			await this.createPlayer();
+			const data = await this.player!.play(song.track);
+			console.log(data);
 			this.setHandlersPlayer();
-			await this.player!.play(song.track);
 			await this.sendEmbedPlayer(song!, this.interaction);
 			this.intervalUpdateProgressBar = setInterval(async () => {
 				await this.updateMainMsgForProgressBar();
@@ -553,11 +560,12 @@ export class MusicPlayer extends BaseCallbackWatcher {
 		} catch (error) {
 			console.log(error);
 			MusicPlayer.instances.delete(this.interaction.guild!.id);
+			console.log("TUT7")
 			await this.destroy();
 			await this.interaction.editReply({
 				"content": "Упс, что-то сломалось("
 			})
 		}
-		
+
 	}
 }
